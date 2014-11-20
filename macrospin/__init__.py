@@ -2,6 +2,7 @@
 Includes helper functions for macrospin
 """
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D, proj3d
 
 def rotation_array(R_function, angles):
     """ Returns an array of rotation matrixes in correct order based on
@@ -38,3 +39,53 @@ def Rz(angle_degrees):
         [np.sin(angle), np.cos(angle), 0],
         [0, 0, 1],
     ])
+
+def normalize(array):
+    """ Normalizes an array row-wise """
+    normals = np.linalg.norm(array, axis=1)
+    normals = np.array(normals.reshape(normals.size, 1))
+    return np.nan_to_num(array / normals)
+    
+def plot_unit_square(figure):
+    ax = figure.gca(projection='3d')
+    from itertools import product,combinations
+    r = [-1, 1]
+    for s, e in combinations(np.array(list(product(r,r,r))), 2):
+        if np.sum(np.abs(s-e)) == r[1]-r[0]:
+            ax.plot3D(*zip(s,e), color="b")
+
+def plot_unit_vectors(figure, vectors, color='r'):
+    
+    origin = np.array([0,0,0])
+
+    from matplotlib.patches import FancyArrowPatch
+    
+    class Arrow3D(FancyArrowPatch):
+        def __init__(self, xs, ys, zs, *args, **kwargs):
+            FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
+            self._verts3d = xs, ys, zs
+    
+        def draw(self, renderer):
+            xs3d, ys3d, zs3d = self._verts3d
+            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+            self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
+            FancyArrowPatch.draw(self, renderer)
+            
+    ax = figure.gca(projection='3d')
+    for vector in vectors:
+        distances = [origin[0],vector[0]], [origin[1],vector[1]], [origin[2],vector[2]]
+        arrow = Arrow3D(*distances, mutation_scale=20, lw=2, arrowstyle="-|>", color=color)
+        ax.add_artist(arrow)
+    return figure
+
+def plot_surface(figure, normal, point=np.array([0,0,0])):
+    # TODO: Add functionality for other directions
+    d = -point.dot(normal)
+    
+    r = np.linspace(-2, 2, num=10)
+    yy, zz = np.meshgrid(r, r)
+    xx = (-normal[2] * zz - normal[1] * yy - d) * 1. /normal[0]
+    
+    ax = figure.gca(projection='3d')
+    ax.plot_surface(xx, yy, zz, alpha=0.1)
+
