@@ -1,8 +1,21 @@
 """
 Includes helper functions for macrospin
 """
+from __future__ import division
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D, proj3d
+
+__version__ = 0.1
+
+def brillouin(x, J):
+    """ Returns the Brillouin function evaluated at x and J """
+    f1 = (2*J+1)/J
+    f2 = 1/(2*J)
+    return f1*np.coth(f1*x)-f2*np.coth(f2*x)
+
+def langevin(x):
+    """ Returns the Langevin function evaluated at x and J """
+    return np.coth(x)-1/x
 
 def rotation_array(R_function, angles):
     """ Returns an array of rotation matrixes in correct order based on
@@ -42,9 +55,12 @@ def Rz(angle_degrees):
 
 def normalize(array):
     """ Normalizes an array row-wise """
-    normals = np.linalg.norm(array, axis=1)
-    normals = np.array(normals.reshape(normals.size, 1))
-    return np.nan_to_num(array / normals)
+    if len(array.shape) == 1:
+        return array/np.linalg.norm(array).T
+    else:
+        normals = np.linalg.norm(array, axis=1)
+        normals = np.array(normals.reshape(normals.size, 1))
+        return array / normals
     
 def plot_unit_square(figure):
     ax = figure.gca(projection='3d')
