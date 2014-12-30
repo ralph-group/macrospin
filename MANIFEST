@@ -1,0 +1,14 @@
+setup.py
+README.md
+macrospin/__init__.py
+macrospin/constants.py
+macrospin/parameters.py
+macrospin/crystal.py
+macrospin/cuda.py
+macrospin/demag.py
+macrospin/energy.py
+macrospin/simulation.py
+macrospin/kernels.pyx
+macrospin/float3.h
+macrospin/cuda/cuda.py
+macrospin/cuda/kernel.cu

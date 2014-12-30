@@ -1,3 +1,5 @@
 *.pyc
 dist/
 build/
+dev/.ipython_checkpoints/
+examples/.ipython_checkpoints/

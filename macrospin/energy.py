@@ -4,6 +4,14 @@ Functions for the free energy of a macrospin magnet
 from __future__ import division
 import numpy as np
 
+def zeeman(m, Ms, H):
+    """ Returns the Zeeman energy in erg/cc
+    m: Reduced magnetization M/Ms (unit vector)
+    Ms: Satuation magnetization (emu/cc)
+    H: Applied magnetic field (Oe)
+    """
+    return Ms*m.dot(H)
+
 def uniaxial_anisotropy(m, u=np.array([0,0,1]), Ku1=0, Ku2=0):
     """ Returns the uniaxial anisotropy part of the free energy in erg/cc
     m: Reduced magnetization M/Ms (unit vector)
@@ -11,9 +19,7 @@ def uniaxial_anisotropy(m, u=np.array([0,0,1]), Ku1=0, Ku2=0):
     Ku1: Uniaxial anisotropy energy 1 (erg/cc)
     Ku2: Uniaxial anisotropy energy 2 (erg/cc)    
     """
-    Fu = -Ku1*(u.dot(m)**2)
-    Fu += -Ku2*(u.dot(m)**4)
-    return Fu
+    return -Ku1*(u.dot(m)**2) - Ku2*(u.dot(m)**4)
     
 def cubic_anisotropy(m, c1, c2, Kc1=0, Kc2=0, Kc3=0):
     """ Returns the cubic anisotropy part of the free energy in erg/cc
@@ -38,7 +44,7 @@ def cubic_anisotropy(m, c1, c2, Kc1=0, Kc2=0, Kc3=0):
     
     Fc += Kc2*((mc1**2)*(mc2**2)*(mc3**2))
     
-    Fc =  Kc3*((mc1**4)*(mc2**4))
+    Fc += Kc3*((mc1**4)*(mc2**4))
     Fc += Kc3*((mc2**4)*(mc3**4))
     Fc += Kc3*((mc1**4)*(mc3**4))
     
@@ -56,9 +62,5 @@ def shape_anisotropy(m, Ms, Nxx, Nyy, Nzz):
     
     Nxx + Nyy + Nzz = 4 pi
     """
-    Nd = np.array([Nxx, Nyy, Nzz])
-    Fd = Nd*m*(Ms**2)
-    
-    return Fd
-    
+    return np.array([Nxx, Nyy, Nzz])*m*(Ms**2)    
 
