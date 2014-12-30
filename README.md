@@ -13,7 +13,8 @@ parameters = CgsParameters({
 	'Ms': 140, # emu/cc
 	'dt': 5e-13, # sec
 	'damping', 0.01,
-	'H_ext': [0., 1e3, 0.], # Oe
+	'Hext': [0., 1e3, 0.], # Oe
+	'm0': [-0.999, 0.001, 0.001],
 })
 
 data_filename = "example.csv"
