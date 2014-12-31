@@ -7,20 +7,18 @@ The `macrospin` package simulates isolated macrospins in a simple and efficient 
 ```python
 from macrospin.parameters import CgsParameters
 from macrospin.kernels import BasicKernel
-from macrospin.simulation import Simulation
 
 parameters = CgsParameters({
-	'Ms': 140, # emu/cc
-	'dt': 5e-13, # sec
-	'damping', 0.01,
-	'Hext': [0., 1e3, 0.], # Oe
-	'm0': [-0.999, 0.001, 0.001],
+    'Ms': 140, # Saturation Magnetization (emu/cc)
+    'dt': 5e-13, # Timestep (sec)
+    'damping': 0.01, # Gilbert damping
+    'Hext': [0., 1e3, 0.], # External field (Oe)
+    'm0': [-0.999, 0.001, 0.001], # Initial moment (normalized)
 })
-
-data_filename = "example.csv"
 
 kernel = BasicKernel(parameters)
 
-simulation = Simulation(kernel, data_filename)
-simulation.run(1e-7)
+# times: Numpy array of simulation times
+# moments: Numpy array of moment orientations
+times, moments = kernel.run(time=1e-7)
 ```
