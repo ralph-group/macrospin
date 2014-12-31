@@ -7,7 +7,7 @@ macrospin/crystal.py
 macrospin/cuda.py
 macrospin/demag.py
 macrospin/energy.py
-macrospin/simulation.py
+macrospin/simulations.py
 macrospin/kernels.pyx
 macrospin/kernels.cpp
 macrospin/float3.h

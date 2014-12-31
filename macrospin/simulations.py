@@ -6,6 +6,7 @@
 # Copyright: 2014 Cornell University
 #
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+import numpy as np
 from threading import Thread
 
 class Simulation(object):
@@ -57,3 +58,56 @@ class Simulation(object):
         is reached in simulation time
         """
         self.run(None, timeout, thread_timeout)
+
+
+class FieldSweep(object):
+
+
+    def __init__(self, kernel, fields):
+        self.kernel = kernel
+        self.fields = fields
+
+
+    @staticmethod
+    def loop(kernel, direction='x', start_field=-1e3, end_field=1e3, 
+             points=1e3, reverse=True):
+        """ Returns a FieldSweep object with fields that go from the start_field
+        to the end_field along a specific direction, with the default option to
+        also include the reverse
+        """
+        H = np.linspace(start_field, end_field, num=points, dtype=np.float32)
+        coordinates = {'x': 0, 'y': 1, 'z': 2}
+
+        if direction not in coordinates:
+            raise ValueError("Field sweep direction must be either x, y, or z")
+
+        if reverse:
+            fields = np.zeros((2*points, 3), dtype=np.float32)
+            fields[:points,coordinates[direction]] = H
+            fields[points:,coordinates[direction]] = H[::-1] # Reversed view
+        else:
+            fields = np.zeros((points, 3), dtype=np.float32)
+            fields[:,coordinates[direction]] = H
+
+        return FieldSweep(kernel, fields)
+
+
+    def run(self, threshold=1e-3):
+        """ Runs through each field and stabilizes the moment, returning
+        the fields, stabilization time, and moment orientation
+        """
+        size = self.fields.shape[0]
+        times = np.zeros((size, 1), dtype=np.float32)
+        moments = np.zeros((size, 3), dtype=np.float32)
+
+        self.kernel.reset()
+
+        for i, field in enumerate(self.fields):
+            ti = self.kernel.t_sec
+            self.kernel.parameters['Hext'] = self.kernel.parameters.normalize_H(field)
+            self.kernel.stabilize(threshold)
+            times[i] = self.kernel.t_sec - ti
+            moments[i] = self.kernel.m
+
+        return self.fields, times, moments
+

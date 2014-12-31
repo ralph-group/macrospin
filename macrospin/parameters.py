@@ -28,6 +28,9 @@ class Parameters(dict):
 class CgsParameters(Parameters):
 
 
+	def normalize_H(self, H):
+		return np.asarray(H, dtype=np.float32)/self['Ms']
+
 	def normalize(self):
 		if 'gyromagnetic_ratio' not in self:
 			self['gyromagnetic_ratio'] = constants.gyromagnetic_ratio
@@ -42,7 +45,7 @@ class CgsParameters(Parameters):
 		# Rescale fields in terms of Ms
 		for key, value in self.iteritems():
 			if key.startswith("H"): # Assume it is a field
-				self[key] = np.asarray(value, dtype=np.float32)/self['Ms']
+				self[key] = self.normalize_H(value)
 
 		# Ensure initial moment is a numpy array
 		self['m0'] = np.asarray(self['m0'], dtype=np.float32)
