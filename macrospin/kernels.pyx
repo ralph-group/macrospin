@@ -12,6 +12,7 @@ import numpy as np
 cimport numpy as np
 from libcpp cimport queue
 
+
 cdef extern from "float3.h":
     cdef cppclass float3:
         float3(x, y, z)
@@ -27,6 +28,7 @@ cdef extern from "float3.h":
         float mag()
         void normalize()
 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef float3 make_float3(float[::1] l):
@@ -36,19 +38,84 @@ cdef float3 make_float3(float[::1] l):
 
 
 class Kernel(object):
+    """ Encapsulates the time evolution algorithm for solving the
+    Landau-Liftshitz equation
+    """
 
-    def __call__(self, time=None, timeout=None):
-        """ Run the simulation for a given time, or until the moment
-        stabilizes (None)
-        """
-        self._stopped = False
-        pass
+    def __init__(self, parameters):
+        self.parameters = parameters.normalize()
+        self.reset()
 
-    def stop(self):
-        """ Stops the kernel by setting the flag
+
+    def run(self, time=None, internal_steps=250):
+        """ Run the simulation for a given time
         """
-        self._stopped = True
+        time *= self.parameters['time_conversion']
+        steps = int(time/self.parameters['dt']/internal_steps)
+
+        moments = np.zeros((steps, 3), dtype=np.float32)
+        times = self.times(moments, internal_steps)
+
+        self.evolve(moments, internal_steps)
+
+        return times, moments
+
+    def times(self, moments, internal_steps=250):
+        """ Returns an array of times that correspond to the moments array
+        that is about to be run
+        """
+        return (self.t + internal_steps*self.parameters['dt']*(
+                1 + np.arange(moments.shape[0])))/(
+                self.parameters['time_conversion'])
+
+
+    def reset(self):
+        """ Resets the kernel to the initial conditions
+        """
+        self.m = self.parameters['m0']
+        self.t = 0.0
+
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# Basic Kernel
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
 class BasicKernel(Kernel):
-    pass
+
+
+    def evolve(self, float[:,::1] moments, const long internal_steps=250):
+        """ Fills an empty array of moment orientations with simulation results.
+        Internal steps are taken for each data point, after which the moment is
+        normalized.
+        """
+        
+        cdef:
+            long i, j
+            long external_steps = moments.shape[0]
+            float3 hxm, mxhxm
+            float3 m = make_float3(self.m) # Initial orientation
+            float3 h_ext = make_float3(self.parameters['Hext'])
+            float DT = self.parameters['dt']
+            float DAMPING = self.parameters['damping']
+
+        m.normalize() # Initial normalization
+
+        for i in range(external_steps):
+            for j in range(internal_steps):
+                h_eff = h_ext
+                hxm = h_eff.cross(m)
+                mxhxm = m.cross(hxm)
+                m = m + (hxm + mxhxm*DAMPING)*DT
+            m.normalize()
+            moments[i][0] = m.x
+            moments[i][1] = m.y
+            moments[i][2] = m.z
+
+        self.m = np.array([m.x, m.y, m.z], dtype=np.float32)
+        self.t += external_steps*internal_steps*DT
+
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# Anisotropy Kernel
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
