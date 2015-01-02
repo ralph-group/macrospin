@@ -16,6 +16,10 @@ struct float3 {
         return float3(x+o.x, y+o.y, z+o.z);
     }
 
+    float3 operator-() {
+        return float3(-x, -y, -z);
+    }
+
     float3 operator-(const float3 o) {
         return float3(x-o.x, y-o.y, z-o.z);
     }
@@ -56,3 +60,7 @@ struct float3 {
     }
 
 };
+
+float3 inline operator*(float a, float3 b) {
+    return float3(a*b.x, a*b.y, a*b.z);
+}

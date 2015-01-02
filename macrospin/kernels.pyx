@@ -3,39 +3,16 @@
 #
 # macrospin Python package
 # Authors: Colin Jermain
-# Copyright: 2014 Cornell University
+# Copyright: 2014-2015 Cornell University
 #
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # distutils: language = c++
 cimport cython
 import numpy as np
 cimport numpy as np
-from libcpp cimport queue
 
-
-cdef extern from "float3.h":
-    cdef cppclass float3:
-        float3(x, y, z)
-        float3()
-        float x, y, z
-        float3 operator+(float3)
-        float3 operator-(float3)
-        float3 operator*(float3)
-        float3 operator*(float)
-        float3 operator/(float)
-        float3 cross(float3)
-        float dot(float3)
-        float mag()
-        void normalize()
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef float3 make_float3(float[::1] l):
-    cdef float3 r
-    r.x, r.y, r.z = l[0], l[1], l[2]
-    return r
-
+from macrospin.float3 cimport *
+from macrospin cimport fields
 
 class Kernel(object):
     """ Encapsulates the time evolution algorithm for solving the
@@ -112,7 +89,7 @@ class BasicKernel(Kernel):
                 h_eff = h_ext
                 hxm = h_eff.cross(m)
                 mxhxm = m.cross(hxm)
-                m = m + (hxm + mxhxm*DAMPING)*DT
+                m = m + DT*(hxm + DAMPING*mxhxm)
             m.normalize()
             moments[i][0] = m.x
             moments[i][1] = m.y
@@ -172,12 +149,12 @@ class AnisotropyKernel(Kernel):
             long external_steps = moments.shape[0]
             float DT = self.parameters['dt']
             float DAMPING = self.parameters['damping']            
-            float3 hxm, mxhxm
+            float3 hxm, mxhxm, h_eff
             float3 m = make_float3(self.m) # Initial orientation
             float3 h_ext = make_float3(self.parameters['Hext'])
             float3 N = make_float3(self.parameters['Nd'])
-            float hu1 = self.parameters['hu1']
-            float hu2 = self.parameters['hu2']
+            float hu1 = self.parameters['Hu1']
+            float hu2 = self.parameters['Hu2']
             float3 eu = make_float3(self.parameters['eu'])
             float m_eu
 
@@ -186,8 +163,7 @@ class AnisotropyKernel(Kernel):
         for i in range(external_steps):
             for j in range(internal_steps):
                 m_eu = m.dot(eu)
-                #h_eff = h_ext - m*N + eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)
-                h_eff = h_ext
+                h_eff = h_ext - m*N + eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)
                 hxm = h_eff.cross(m)
                 mxhxm = m.cross(hxm)
                 m = m + (hxm + mxhxm*DAMPING)*DT

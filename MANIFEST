@@ -11,5 +11,9 @@ macrospin/simulations.py
 macrospin/kernels.pyx
 macrospin/kernels.cpp
 macrospin/float3.h
+macrospin/float3.pxd
+macrospin/fields.pyx
+macrospin/fields.pxd
+macrospin/fields.cpp
 macrospin/cuda/cuda.py
 macrospin/cuda/kernel.cu
