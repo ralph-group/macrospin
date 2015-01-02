@@ -152,7 +152,7 @@ class AnisotropyKernel(Kernel):
             float3 hxm, mxhxm, h_eff
             float3 m = make_float3(self.m) # Initial orientation
             float3 h_ext = make_float3(self.parameters['Hext'])
-            float3 N = make_float3(self.parameters['Nd'])
+            float3 Nd = make_float3(self.parameters['Nd'])
             float hu1 = self.parameters['Hu1']
             float hu2 = self.parameters['Hu2']
             float3 eu = make_float3(self.parameters['eu'])
@@ -163,7 +163,8 @@ class AnisotropyKernel(Kernel):
         for i in range(external_steps):
             for j in range(internal_steps):
                 m_eu = m.dot(eu)
-                h_eff = h_ext - m*N + eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)
+                h_eff = h_ext + fields.demagnetization(m, Nd)
+                h_eff = h_eff + fields.uniaxial_anisotropy(m, eu, hu1, hu2)
                 hxm = h_eff.cross(m)
                 mxhxm = m.cross(hxm)
                 m = m + (hxm + mxhxm*DAMPING)*DT

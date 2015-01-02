@@ -1787,6 +1787,7 @@ static CYTHON_INLINE float3 __pyx_f_9macrospin_6fields_demagnetization(float3 __
  * cdef inline float3 demagnetization(float3 m, float3 Nd):
  *     return -m*Nd             # <<<<<<<<<<<<<<
  * 
+ * 
  */
   __pyx_r = ((-__pyx_v_m) * __pyx_v_Nd);
   goto __pyx_L0;
@@ -1797,6 +1798,172 @@ static CYTHON_INLINE float3 __pyx_f_9macrospin_6fields_demagnetization(float3 __
  * cdef inline float3 demagnetization(float3 m, float3 Nd):             # <<<<<<<<<<<<<<
  *     return -m*Nd
  * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/fields.pxd":17
+ * 
+ * 
+ * cdef inline float3 uniaxial_anisotropy(float3 m, float3 eu, float hu1, float hu2):             # <<<<<<<<<<<<<<
+ *     cdef float m_eu = m.dot(eu)
+ *     return eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)
+ */
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_6fields_uniaxial_anisotropy(float3 __pyx_v_m, float3 __pyx_v_eu, float __pyx_v_hu1, float __pyx_v_hu2) {
+  float __pyx_v_m_eu;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("uniaxial_anisotropy", 0);
+
+  /* "macrospin/fields.pxd":18
+ * 
+ * cdef inline float3 uniaxial_anisotropy(float3 m, float3 eu, float hu1, float hu2):
+ *     cdef float m_eu = m.dot(eu)             # <<<<<<<<<<<<<<
+ *     return eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)
+ * 
+ */
+  __pyx_v_m_eu = __pyx_v_m.dot(__pyx_v_eu);
+
+  /* "macrospin/fields.pxd":19
+ * cdef inline float3 uniaxial_anisotropy(float3 m, float3 eu, float hu1, float hu2):
+ *     cdef float m_eu = m.dot(eu)
+ *     return eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = ((__pyx_v_eu * (__pyx_v_m_eu * __pyx_v_hu1)) + (__pyx_v_eu * (((__pyx_v_m_eu * __pyx_v_m_eu) * __pyx_v_m_eu) * __pyx_v_hu2)));
+  goto __pyx_L0;
+
+  /* "macrospin/fields.pxd":17
+ * 
+ * 
+ * cdef inline float3 uniaxial_anisotropy(float3 m, float3 eu, float hu1, float hu2):             # <<<<<<<<<<<<<<
+ *     cdef float m_eu = m.dot(eu)
+ *     return eu*(m_eu*hu1) + eu*(m_eu*m_eu*m_eu*hu2)
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/fields.pxd":22
+ * 
+ * 
+ * cdef inline float3 cubic_anisotropy(float3 m, float3 c1, float3 c2, float3 c3,             # <<<<<<<<<<<<<<
+ *      float hc1, float hc2):
+ *     cdef:
+ */
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_6fields_cubic_anisotropy(float3 __pyx_v_m, float3 __pyx_v_c1, float3 __pyx_v_c2, float3 __pyx_v_c3, float __pyx_v_hc1, float __pyx_v_hc2) {
+  float __pyx_v_m_c1;
+  float __pyx_v_m_c2;
+  float __pyx_v_m_c3;
+  float3 __pyx_v_h;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("cubic_anisotropy", 0);
+
+  /* "macrospin/fields.pxd":25
+ *      float hc1, float hc2):
+ *     cdef:
+ *         float m_c1 = m.dot(c1)             # <<<<<<<<<<<<<<
+ *         float m_c2 = m.dot(c2)
+ *         float m_c3 = m.dot(c3)
+ */
+  __pyx_v_m_c1 = __pyx_v_m.dot(__pyx_v_c1);
+
+  /* "macrospin/fields.pxd":26
+ *     cdef:
+ *         float m_c1 = m.dot(c1)
+ *         float m_c2 = m.dot(c2)             # <<<<<<<<<<<<<<
+ *         float m_c3 = m.dot(c3)
+ *         float3 h
+ */
+  __pyx_v_m_c2 = __pyx_v_m.dot(__pyx_v_c2);
+
+  /* "macrospin/fields.pxd":27
+ *         float m_c1 = m.dot(c1)
+ *         float m_c2 = m.dot(c2)
+ *         float m_c3 = m.dot(c3)             # <<<<<<<<<<<<<<
+ *         float3 h
+ *     h =     hc1*(m_c2**2 + m_c3**2)*(m_c1*c1)
+ */
+  __pyx_v_m_c3 = __pyx_v_m.dot(__pyx_v_c3);
+
+  /* "macrospin/fields.pxd":29
+ *         float m_c3 = m.dot(c3)
+ *         float3 h
+ *     h =     hc1*(m_c2**2 + m_c3**2)*(m_c1*c1)             # <<<<<<<<<<<<<<
+ *     h = h + hc1*(m_c1**2 + m_c3**2)*(m_c2*c2)
+ *     h = h + hc1*(m_c1**2 + m_c2**2)*(m_c3*c3)
+ */
+  __pyx_v_h = ((__pyx_v_hc1 * (powf(__pyx_v_m_c2, 2.0) + powf(__pyx_v_m_c3, 2.0))) * (__pyx_v_m_c1 * __pyx_v_c1));
+
+  /* "macrospin/fields.pxd":30
+ *         float3 h
+ *     h =     hc1*(m_c2**2 + m_c3**2)*(m_c1*c1)
+ *     h = h + hc1*(m_c1**2 + m_c3**2)*(m_c2*c2)             # <<<<<<<<<<<<<<
+ *     h = h + hc1*(m_c1**2 + m_c2**2)*(m_c3*c3)
+ * 
+ */
+  __pyx_v_h = (__pyx_v_h + ((__pyx_v_hc1 * (powf(__pyx_v_m_c1, 2.0) + powf(__pyx_v_m_c3, 2.0))) * (__pyx_v_m_c2 * __pyx_v_c2)));
+
+  /* "macrospin/fields.pxd":31
+ *     h =     hc1*(m_c2**2 + m_c3**2)*(m_c1*c1)
+ *     h = h + hc1*(m_c1**2 + m_c3**2)*(m_c2*c2)
+ *     h = h + hc1*(m_c1**2 + m_c2**2)*(m_c3*c3)             # <<<<<<<<<<<<<<
+ * 
+ *     h = h + hc2*(m_c2**2 * m_c3**2)*(m_c1*c1)
+ */
+  __pyx_v_h = (__pyx_v_h + ((__pyx_v_hc1 * (powf(__pyx_v_m_c1, 2.0) + powf(__pyx_v_m_c2, 2.0))) * (__pyx_v_m_c3 * __pyx_v_c3)));
+
+  /* "macrospin/fields.pxd":33
+ *     h = h + hc1*(m_c1**2 + m_c2**2)*(m_c3*c3)
+ * 
+ *     h = h + hc2*(m_c2**2 * m_c3**2)*(m_c1*c1)             # <<<<<<<<<<<<<<
+ *     h = h + hc2*(m_c1**2 * m_c3**2)*(m_c2*c2)
+ *     h = h + hc2*(m_c1**2 * m_c2**2)*(m_c3*c3)
+ */
+  __pyx_v_h = (__pyx_v_h + ((__pyx_v_hc2 * (powf(__pyx_v_m_c2, 2.0) * powf(__pyx_v_m_c3, 2.0))) * (__pyx_v_m_c1 * __pyx_v_c1)));
+
+  /* "macrospin/fields.pxd":34
+ * 
+ *     h = h + hc2*(m_c2**2 * m_c3**2)*(m_c1*c1)
+ *     h = h + hc2*(m_c1**2 * m_c3**2)*(m_c2*c2)             # <<<<<<<<<<<<<<
+ *     h = h + hc2*(m_c1**2 * m_c2**2)*(m_c3*c3)
+ *     return h
+ */
+  __pyx_v_h = (__pyx_v_h + ((__pyx_v_hc2 * (powf(__pyx_v_m_c1, 2.0) * powf(__pyx_v_m_c3, 2.0))) * (__pyx_v_m_c2 * __pyx_v_c2)));
+
+  /* "macrospin/fields.pxd":35
+ *     h = h + hc2*(m_c2**2 * m_c3**2)*(m_c1*c1)
+ *     h = h + hc2*(m_c1**2 * m_c3**2)*(m_c2*c2)
+ *     h = h + hc2*(m_c1**2 * m_c2**2)*(m_c3*c3)             # <<<<<<<<<<<<<<
+ *     return h
+ */
+  __pyx_v_h = (__pyx_v_h + ((__pyx_v_hc2 * (powf(__pyx_v_m_c1, 2.0) * powf(__pyx_v_m_c2, 2.0))) * (__pyx_v_m_c3 * __pyx_v_c3)));
+
+  /* "macrospin/fields.pxd":36
+ *     h = h + hc2*(m_c1**2 * m_c3**2)*(m_c2*c2)
+ *     h = h + hc2*(m_c1**2 * m_c2**2)*(m_c3*c3)
+ *     return h             # <<<<<<<<<<<<<<
+ */
+  __pyx_r = __pyx_v_h;
+  goto __pyx_L0;
+
+  /* "macrospin/fields.pxd":22
+ * 
+ * 
+ * cdef inline float3 cubic_anisotropy(float3 m, float3 c1, float3 c2, float3 c3,             # <<<<<<<<<<<<<<
+ *      float hc1, float hc2):
+ *     cdef:
  */
 
   /* function exit code */
