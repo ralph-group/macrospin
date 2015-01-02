@@ -3,7 +3,7 @@
 #
 # macrospin Python package
 # Authors: Colin Jermain
-# Copyright: 2014 Cornell University
+# Copyright: 2014-2015 Cornell University
 #
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 import numpy as np
