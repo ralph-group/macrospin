@@ -26,7 +26,7 @@ cdef class Kernel(object):
 
     def __cinit__(self, object parameters, char* step_method='RK23'):
         self.parameters = parameters.normalize()
-        self.load()
+        self._load()
 
         self.kernel.set_step_func(step_method)
 
@@ -34,7 +34,7 @@ cdef class Kernel(object):
 
     # TODO: def __dealloc__(self):
 
-    def load(self):
+    def _load(self):
         """ Loads the parameters from the kernel (to be overwritten)
         """
         self.kernel = new c_kernels.Kernel()
@@ -100,7 +100,7 @@ cdef class Kernel(object):
 
 cdef class BasicKernel(Kernel):
 
-    def load(self):
+    def _load(self):
         """ Loads the parameters from the kernel (overwritting Kernel.load)
         """
         self.kernel = <c_kernels.Kernel *> new c_kernels.BasicKernel()
