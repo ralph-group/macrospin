@@ -15,4 +15,7 @@ from macrospin.cpp.c_kernels cimport Kernel
 cdef extern from "cpp/solvers.h":
     cdef:
         void euler_step(Kernel*)
+        void huen_step(Kernel*)
         void rk23_step(Kernel*)
+        void rk4_step(Kernel*)
+        void rk45_step(Kernel*)
