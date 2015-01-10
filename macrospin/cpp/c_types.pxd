@@ -1,5 +1,5 @@
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Float3 Vector Cython class and function declarations
+# Cython imports for C++ macrospin types
 #
 # macrospin Python package
 # Authors: Colin Jermain
@@ -9,7 +9,7 @@
 # distutils: language = c++
 cimport cython
 
-cdef extern from "float3.h":
+cdef extern from "cpp/types.h":
     cdef cppclass float3:
         float3(x, y, z)
         float3()

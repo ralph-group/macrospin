@@ -1,5 +1,8 @@
+#ifndef __TYPES_H_INCLUDED__
+#define __TYPES_H_INCLUDED__
 
 #include <math.h>
+
 
 struct float3 {
     float x, y, z;
@@ -14,6 +17,12 @@ struct float3 {
 
     float3 operator+(const float3 o) {
         return float3(x+o.x, y+o.y, z+o.z);
+    }
+
+    void operator+=(const float3 o) {
+        x += o.x;
+        y += o.y;
+        z += o.z;
     }
 
     float3 operator-() {
@@ -64,3 +73,5 @@ struct float3 {
 float3 inline operator*(float a, float3 b) {
     return float3(a*b.x, a*b.y, a*b.z);
 }
+
+#endif

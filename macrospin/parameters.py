@@ -50,6 +50,8 @@ class CgsParameters(Parameters):
 		# Ensure initial moment is a numpy array
 		self['m0'] = np.asarray(self['m0'], dtype=np.float32)
 
+		self['Nd'] = np.asarray(self['Nd'], dtype=np.float32)
+
 		return self
 
 
