@@ -6,7 +6,7 @@ extensions = [
     Extension("macrospin.kernels",
         ["macrospin/kernels.pyx"], 
         language='c++',
-        include_dirs=[np.get_include()],
+        include_dirs=[np.get_include(), '.'],
     ),
 ]
 
@@ -22,5 +22,5 @@ setup(
     description='Macrospin simulations using Cython and CUDA for Python',
     long_description=open('README.md').read(),
     ext_modules=cythonize(extensions),
-
+    package_data={'macrospin': ['*.pxd', '*.h']},
 )

@@ -12,10 +12,21 @@ cdef struct Step:
 
 cdef class Kernel:
     cdef:
-        object parameters
+        public object parameters
         Step previous, current
         void (*step_func)(Kernel)
-        float dt
+        public float dt
+    cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps)
+    cdef float3 field(self, float t, float3 m)
+    cdef float3 torque(self, float t, float3 m)
+    cdef float energy(self, float t, float3 m)
+
+
+cdef class BasicKernel(Kernel):
+    cdef:
+        public float alpha
+        float3 hext, Nd
+        
     cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps)
     cdef float3 field(self, float t, float3 m)
     cdef float3 torque(self, float t, float3 m)

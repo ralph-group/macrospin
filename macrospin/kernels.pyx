@@ -15,13 +15,12 @@ from macrospin.types cimport * # includes float3 and its operators
 from macrospin cimport field, torque, energy, solvers
 
 
-
 cdef class Kernel:
     """ Encapsulates the time evolution algorithm for solving the
     Landau-Liftshitz equation
     """
 
-    def __cinit__(self, object parameters, step_method="RK23"):
+    def __init__(self, object parameters, step_method="RK23"):
         self.parameters = parameters.normalize()
         self._load()
 
@@ -49,6 +48,14 @@ cdef class Kernel:
         """ Loads the parameters from the kernel (to be extended)
         """
         self.dt = self.parameters['dt']
+
+
+    def reset(self):
+        """ Resets the kernel to the initial conditions
+        """
+        self.current.m = make_float3(self.parameters['m0'])
+        self.current.t = 0.0
+        self.current.torque = self.torque(self.current.t, self.current.m)
 
 
     def run(self, time=None, internal_steps=250):
@@ -129,12 +136,6 @@ cdef class Kernel:
         return self.current.t/self.parameters['time_conversion']
 
 
-    def reset(self):
-        """ Resets the kernel to the initial conditions
-        """
-        self.current.m = make_float3(self.parameters['m0'])
-        self.current.t = 0.0
-        self.current.torque = self.torque(self.current.t, self.current.m)
 
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -143,9 +144,6 @@ cdef class Kernel:
 
 
 cdef class BasicKernel(Kernel):
-    cdef:
-        float alpha
-        float3 hext, Nd
 
 
     def _load(self):
@@ -164,3 +162,13 @@ cdef class BasicKernel(Kernel):
     cdef float3 torque(self, float t, float3 m):
         cdef float3 heff = self.field(t, m)
         return torque.landau_lifshitz(m, heff, self.alpha)
+
+
+    property hext:
+        def __get__(self): return make_array(self.hext)
+        def __set__(self, float[::1] l): self.hext = make_float3(l)
+
+
+    property Nd:
+        def __get__(self): return make_array(self.Nd)
+        def __set__(self, float[::1] l): self.Nd = make_float3(l)

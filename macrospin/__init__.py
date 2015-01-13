@@ -2,11 +2,17 @@
 Includes helper functions for macrospin
 """
 from __future__ import division
+import os
 import numpy as np
 from mpl_toolkits.mplot3d import proj3d
 
 __version__ = 0.1
 
+
+def get_include():
+    import macrospin
+    return os.path.dirname(macrospin.__file__)+"/" # TODO: Eliminate +"/" hack
+    
 
 def brillouin(x, J):
     """ Returns the Brillouin function evaluated at x and J """
