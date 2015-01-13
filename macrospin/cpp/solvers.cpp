@@ -1,6 +1,5 @@
 #include "solvers.h"
 #include "kernels.h"
-#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
