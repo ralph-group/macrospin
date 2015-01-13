@@ -11,9 +11,21 @@ cimport cython
 import numpy as np
 cimport numpy as np
 
-from macrospin.cpp.c_types cimport * # includes float3 and its operators
-from macrospin.cpp cimport c_kernels
-from macrospin.cpp cimport c_solvers
+from macrospin.types cimport * # includes float3 and its operators
+from macrospin cimport field, torque, energy, solvers
+
+
+cdef struct Step:
+    """ Stores the results of a time step operation
+
+    m - moment unit vector
+    t - simulation time
+    torque - torque at (t, m)
+    eps - error
+
+    """
+    float3 m, torque
+    float t, eps
 
 
 cdef class Kernel(object):
@@ -21,24 +33,29 @@ cdef class Kernel(object):
     Landau-Liftshitz equation
     """
     cdef:
-        c_kernels.Kernel *kernel
         object parameters
+        Step previous, current
+        void *step_func(Kernel*)
+        float dt
+
 
     def __cinit__(self, object parameters, char* step_method='RK23'):
         self.parameters = parameters.normalize()
         self._load()
 
-        self.kernel.set_step_func(step_method)
+        self.set_step_func(step_method)
 
         self.reset()
 
+
     # TODO: def __dealloc__(self):
 
+
     def _load(self):
-        """ Loads the parameters from the kernel (to be overwritten)
+        """ Loads the parameters from the kernel (to be extended)
         """
-        self.kernel = new c_kernels.Kernel()
-        self.kernel.dt = self.parameters['dt']
+        self.dt = self.parameters['dt']
+
 
     def run(self, time=None, internal_steps=250):
         """ Run the simulation for a given time
@@ -53,8 +70,37 @@ cdef class Kernel(object):
 
         return times, moments
 
-    cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):
-        self.kernel.evolve(moments_ptr, steps, internal_steps)
+
+    cdef void _evolve(self, float* moments_ptr, long steps, long internal_steps):
+        """ Takes steps
+
+        **moments - pointer to array of array of floats
+        external_steps -
+        internal_steps -
+
+        """
+
+        for i in range(external_steps):
+            for j in range(internal_steps):
+                self.previous = self.current
+                self.step_func(self)
+
+            moments_ptr[3*i] = self.current.m.x;
+            moments_ptr[3*i+1] = self.current.m.y;
+            moments_ptr[3*i+2] = self.current.m.z;             
+
+
+    cdef void set_step_func(step_func_name):
+        """ Sets the step function based on its name """
+        if step_func_name == "Euler":
+            self.step_func = solvers.euler_step
+        elif step_func_name == "Huen":
+            self.step_func = solvers.huen_step
+        elif step_func_name == "RK23":
+            self.step_func = solvers.rk23_step
+        elif step_func_name == "RK4":
+            self.step_func = solver.rk4_step
+
 
     def times(self, moments, internal_steps=250):
         """ Returns an array of times that correspond to the moments array
@@ -64,33 +110,49 @@ cdef class Kernel(object):
                 1 + np.arange(moments.shape[0])))/(
                 self.parameters['time_conversion'])
 
+
+    cdef float3 field(float t, float3 m):
+        float3 field
+        return field
+
+
+    cdef float3 torque(float t, float3 m):
+        float3 field
+        return field    
+
+
+    cdef float energy(float t, float3 m):
+        return energy.zeeman(m, self.field(t, m))
+
+
     @property
     def m(self):
         """ Returns the moment unit vector as a numpy array
         """
-        cdef float3 m = self.kernel.current.m
+        cdef float3 m = self.current.m
         return np.array([m.x, m.y, m.z], dtype=np.float32)
+
 
     @property
     def t(self):
         """ Returns the simulation time in units of (gamma Ms)
         """
-        return self.kernel.current.t
+        return self.current.t
+
 
     @property
     def t_sec(self):
         """ Returns the simulation time in seconds
         """
-        return self.kernel.current.t/self.parameters['time_conversion']
+        return self.current.t/self.parameters['time_conversion']
 
 
     def reset(self):
         """ Resets the kernel to the initial conditions
         """
-        self.kernel.current.m = make_float3(self.parameters['m0'])
-        self.kernel.current.t = 0.0
-        self.kernel.current.torque = self.kernel.torque(self.kernel.current.t, 
-            self.kernel.current.m)
+        self.current.m = make_float3(self.parameters['m0'])
+        self.current.t = 0.0
+        self.current.torque = self.torque(self.current.t, self.current.m)
 
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -99,15 +161,24 @@ cdef class Kernel(object):
 
 
 cdef class BasicKernel(Kernel):
+    cdef:
+        float alpha
+        float3 hext, Nd
+
 
     def _load(self):
         """ Loads the parameters from the kernel (overwritting Kernel.load)
         """
-        self.kernel = <c_kernels.Kernel *> new c_kernels.BasicKernel()
-        self.kernel.dt = self.parameters['dt']
-        (<c_kernels.BasicKernel *>self.kernel).alpha = self.parameters['damping']
-        (<c_kernels.BasicKernel *>self.kernel).hext = make_float3(self.parameters['Hext'])
-        (<c_kernels.BasicKernel *>self.kernel).Nd = make_float3(self.parameters['Nd'])
+        self.dt = self.parameters['dt']
+        self.alpha = self.parameters['damping']
+        self.hext = make_float3(self.parameters['Hext'])
+        self.Nd = make_float3(self.parameters['Nd'])
 
-    cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):
-        (<c_kernels.BasicKernel *>self.kernel).evolve(moments_ptr, steps, internal_steps)
+
+    cdef float3 field(float t, float3 m):
+        return self.hext + field.demagnetization(m, self.Nd)
+
+
+    cdef float3 torque(float t, float3 m):
+        cdef float3 heff = self.field(t, m)
+        return torque.landau_lifshitz(m, heff, self.alpha)
