@@ -4,11 +4,9 @@ import numpy as np
 
 extensions = [
     Extension("macrospin.kernels",
-        ["macrospin/kernels.pyx", "macrospin/cpp/kernels.cpp", "macrospin/cpp/solvers.cpp"], 
+        ["macrospin/kernels.pyx"], 
         language='c++',
-        include_dirs=[np.get_include(), 'macrospin/cpp/'],
-        library_dirs=['macrospin/cpp/'],
-        extra_compile_args=['-std=c++11'], # this line might break Windows/MacOSX 
+        include_dirs=[np.get_include()],
     ),
 ]
 

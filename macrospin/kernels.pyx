@@ -15,31 +15,13 @@ from macrospin.types cimport * # includes float3 and its operators
 from macrospin cimport field, torque, energy, solvers
 
 
-cdef struct Step:
-    """ Stores the results of a time step operation
 
-    m - moment unit vector
-    t - simulation time
-    torque - torque at (t, m)
-    eps - error
-
-    """
-    float3 m, torque
-    float t, eps
-
-
-cdef class Kernel(object):
+cdef class Kernel:
     """ Encapsulates the time evolution algorithm for solving the
     Landau-Liftshitz equation
     """
-    cdef:
-        object parameters
-        Step previous, current
-        void *step_func(Kernel*)
-        float dt
 
-
-    def __cinit__(self, object parameters, char* step_method='RK23'):
+    def __cinit__(self, object parameters, step_method="RK23"):
         self.parameters = parameters.normalize()
         self._load()
 
@@ -49,6 +31,18 @@ cdef class Kernel(object):
 
 
     # TODO: def __dealloc__(self):
+
+    def set_step_func(self, name):
+        if name == "Euler":
+            self.step_func = &(solvers.euler_step)
+        elif name == "Huen":
+            self.step_func = &(solvers.huen_step)
+        elif name == "RK23":
+            self.step_func = &(solvers.rk23_step)
+        elif name == "RK4":
+            self.step_func = &(solvers.rk4_step)
+        else: # Default to RK23
+            self.step_func = &(solvers.rk23_step)
 
 
     def _load(self):
@@ -71,7 +65,7 @@ cdef class Kernel(object):
         return times, moments
 
 
-    cdef void _evolve(self, float* moments_ptr, long steps, long internal_steps):
+    cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps):
         """ Takes steps
 
         **moments - pointer to array of array of floats
@@ -90,18 +84,6 @@ cdef class Kernel(object):
             moments_ptr[3*i+2] = self.current.m.z;             
 
 
-    cdef void set_step_func(step_func_name):
-        """ Sets the step function based on its name """
-        if step_func_name == "Euler":
-            self.step_func = solvers.euler_step
-        elif step_func_name == "Huen":
-            self.step_func = solvers.huen_step
-        elif step_func_name == "RK23":
-            self.step_func = solvers.rk23_step
-        elif step_func_name == "RK4":
-            self.step_func = solver.rk4_step
-
-
     def times(self, moments, internal_steps=250):
         """ Returns an array of times that correspond to the moments array
         that is about to be run
@@ -111,17 +93,17 @@ cdef class Kernel(object):
                 self.parameters['time_conversion'])
 
 
-    cdef float3 field(float t, float3 m):
-        float3 field
+    cdef float3 field(self, float t, float3 m):
+        cdef float3 field
         return field
 
 
-    cdef float3 torque(float t, float3 m):
-        float3 field
-        return field    
+    cdef float3 torque(self, float t, float3 m):
+        cdef float3 torque
+        return torque
 
 
-    cdef float energy(float t, float3 m):
+    cdef float energy(self, float t, float3 m):
         return energy.zeeman(m, self.field(t, m))
 
 
@@ -175,10 +157,10 @@ cdef class BasicKernel(Kernel):
         self.Nd = make_float3(self.parameters['Nd'])
 
 
-    cdef float3 field(float t, float3 m):
+    cdef float3 field(self, float t, float3 m):
         return self.hext + field.demagnetization(m, self.Nd)
 
 
-    cdef float3 torque(float t, float3 m):
+    cdef float3 torque(self, float t, float3 m):
         cdef float3 heff = self.field(t, m)
         return torque.landau_lifshitz(m, heff, self.alpha)

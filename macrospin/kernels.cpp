@@ -238,9 +238,7 @@ void __Pyx_call_destructor(T* x) {
 #include "stdlib.h"
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
-#include "cpp/types.h"
-#include "cpp/kernels.h"
-#include "cpp/solvers.h"
+#include "_types.h"
 #include "pythread.h"
 #include "pystate.h"
 #ifdef _OPENMP
@@ -447,7 +445,7 @@ static const char *__pyx_filename;
 
 static const char *__pyx_f[] = {
   "macrospin/kernels.pyx",
-  "macrospin/cpp/c_types.pxd",
+  "macrospin/types.pxd",
   "__init__.pxd",
   "stringsource",
   "type.pxd",
@@ -796,31 +794,52 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  * cdef inline object PyArray_MultiIterNew1(a):
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
+struct __pyx_t_9macrospin_7kernels_Step;
 
-/* "macrospin/kernels.pyx":19
+/* "macrospin/kernels.pxd":8
+ * from macrospin.types cimport *
+ * 
+ * cdef struct Step:             # <<<<<<<<<<<<<<
+ *     float3 m, torque
+ *     float t, eps
+ */
+struct __pyx_t_9macrospin_7kernels_Step {
+  float3 m;
+  float3 torque;
+  float t;
+  float eps;
+};
+
+/* "macrospin/kernels.pxd":13
  * 
  * 
- * cdef class Kernel(object):             # <<<<<<<<<<<<<<
- *     """ Encapsulates the time evolution algorithm for solving the
- *     Landau-Liftshitz equation
+ * cdef class Kernel:             # <<<<<<<<<<<<<<
+ *     cdef:
+ *         object parameters
  */
 struct __pyx_obj_9macrospin_7kernels_Kernel {
   PyObject_HEAD
   struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *__pyx_vtab;
-  Kernel *kernel;
   PyObject *parameters;
+  struct __pyx_t_9macrospin_7kernels_Step previous;
+  struct __pyx_t_9macrospin_7kernels_Step current;
+  void (*step_func)(struct __pyx_obj_9macrospin_7kernels_Kernel *);
+  float dt;
 };
 
 
-/* "macrospin/kernels.pyx":101
+/* "macrospin/kernels.pyx":145
  * 
  * 
  * cdef class BasicKernel(Kernel):             # <<<<<<<<<<<<<<
- * 
- *     def load(self):
+ *     cdef:
+ *         float alpha
  */
 struct __pyx_obj_9macrospin_7kernels_BasicKernel {
   struct __pyx_obj_9macrospin_7kernels_Kernel __pyx_base;
+  float alpha;
+  float3 hext;
+  float3 Nd;
 };
 
 
@@ -904,23 +923,26 @@ struct __pyx_memoryviewslice_obj {
 /* "macrospin/kernels.pyx":19
  * 
  * 
- * cdef class Kernel(object):             # <<<<<<<<<<<<<<
+ * cdef class Kernel:             # <<<<<<<<<<<<<<
  *     """ Encapsulates the time evolution algorithm for solving the
  *     Landau-Liftshitz equation
  */
 
 struct __pyx_vtabstruct_9macrospin_7kernels_Kernel {
-  PyObject *(*_evolve)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float *, long, long);
+  void (*_evolve)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float *, long, long);
+  float3 (*field)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3);
+  float3 (*torque)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3);
+  float (*energy)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3);
 };
 static struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *__pyx_vtabptr_9macrospin_7kernels_Kernel;
 
 
-/* "macrospin/kernels.pyx":101
+/* "macrospin/kernels.pyx":145
  * 
  * 
  * cdef class BasicKernel(Kernel):             # <<<<<<<<<<<<<<
- * 
- *     def load(self):
+ *     cdef:
+ *         float alpha
  */
 
 struct __pyx_vtabstruct_9macrospin_7kernels_BasicKernel {
@@ -1067,6 +1089,18 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
 #define __Pyx_PyObject_CallNoArg(func) __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL)
 #endif
 
+#include <string.h>
+
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
+
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
+
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
+#else
+#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
+#endif
+
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
 
 static CYTHON_INLINE int  __Pyx_GetBufferAndValidate(Py_buffer* buf, PyObject* obj,
@@ -1100,6 +1134,13 @@ static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
 
 static void __Pyx_RaiseBufferIndexError(int axis);
 
+static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb);
+static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb);
+
+static void __Pyx_WriteUnraisable(const char *name, int clineno,
+                                  int lineno, const char *filename,
+                                  int full_traceback);
+
 #define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck) \
     (__Pyx_fits_Py_ssize_t(i, type, is_signed) ? \
     __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) : \
@@ -1121,13 +1162,6 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
                                                      int is_list, int wraparound, int boundscheck);
 
-static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb);
-static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb);
-
-static void __Pyx_WriteUnraisable(const char *name, int clineno,
-                                  int lineno, const char *filename,
-                                  int full_traceback);
-
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
 
 static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
@@ -1140,18 +1174,6 @@ static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
 
 static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, int none_allowed,
     const char *name, int exact);
-
-#include <string.h>
-
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
-
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
-
-#if PY_MAJOR_VERSION >= 3
-#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
-#else
-#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
-#endif
 
 static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t, Py_ssize_t); /* proto */
 
@@ -1257,6 +1279,10 @@ static void __pyx_insert_code_object(int code_line, PyCodeObject* code_object);
 static void __Pyx_AddTraceback(const char *funcname, int c_line,
                                int py_line, const char *filename);
 
+static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
+
+#include <new>
+
 typedef struct {
   Py_ssize_t shape, strides, suboffsets;
 } __Pyx_Buf_DimInfo;
@@ -1281,47 +1307,6 @@ typedef struct {
 
 static Py_ssize_t __Pyx_zeros[] = {0, 0, 0, 0, 0, 0, 0, 0};
 static Py_ssize_t __Pyx_minusones[] = {-1, -1, -1, -1, -1, -1, -1, -1};
-
-static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
-
-#ifndef __Pyx_CppExn2PyErr
-#include <new>
-#include <typeinfo>
-#include <stdexcept>
-#include <ios>
-static void __Pyx_CppExn2PyErr() {
-  try {
-    if (PyErr_Occurred())
-      ; // let the latest Python exn pass through and ignore the current one
-    else
-      throw;
-  } catch (const std::bad_alloc& exn) {
-    PyErr_SetString(PyExc_MemoryError, exn.what());
-  } catch (const std::bad_cast& exn) {
-    PyErr_SetString(PyExc_TypeError, exn.what());
-  } catch (const std::domain_error& exn) {
-    PyErr_SetString(PyExc_ValueError, exn.what());
-  } catch (const std::invalid_argument& exn) {
-    PyErr_SetString(PyExc_ValueError, exn.what());
-  } catch (const std::ios_base::failure& exn) {
-    PyErr_SetString(PyExc_IOError, exn.what());
-  } catch (const std::out_of_range& exn) {
-    PyErr_SetString(PyExc_IndexError, exn.what());
-  } catch (const std::overflow_error& exn) {
-    PyErr_SetString(PyExc_OverflowError, exn.what());
-  } catch (const std::range_error& exn) {
-    PyErr_SetString(PyExc_ArithmeticError, exn.what());
-  } catch (const std::underflow_error& exn) {
-    PyErr_SetString(PyExc_ArithmeticError, exn.what());
-  } catch (const std::exception& exn) {
-    PyErr_SetString(PyExc_RuntimeError, exn.what());
-  }
-  catch (...)
-  {
-    PyErr_SetString(PyExc_RuntimeError, "Unknown exception");
-  }
-}
-#endif
 
 static PyObject *__pyx_memview_get_float(const char *itemp);
 static int __pyx_memview_set_float(const char *itemp, PyObject *obj);
@@ -1481,8 +1466,12 @@ static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class
 
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
-static PyObject *__pyx_f_9macrospin_7kernels_6Kernel__evolve(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, float *__pyx_v_moments_ptr, long __pyx_v_steps, long __pyx_v_internal_steps); /* proto*/
-static PyObject *__pyx_f_9macrospin_7kernels_11BasicKernel__evolve(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self, float *__pyx_v_moments_ptr, long __pyx_v_steps, long __pyx_v_internal_steps); /* proto*/
+static void __pyx_f_9macrospin_7kernels_6Kernel__evolve(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, float *__pyx_v_moments_ptr, long __pyx_v_external_steps, long __pyx_v_internal_steps); /* proto*/
+static float3 __pyx_f_9macrospin_7kernels_6Kernel_field(CYTHON_UNUSED struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, CYTHON_UNUSED float __pyx_v_t, CYTHON_UNUSED float3 __pyx_v_m); /* proto*/
+static float3 __pyx_f_9macrospin_7kernels_6Kernel_torque(CYTHON_UNUSED struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, CYTHON_UNUSED float __pyx_v_t, CYTHON_UNUSED float3 __pyx_v_m); /* proto*/
+static float __pyx_f_9macrospin_7kernels_6Kernel_energy(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, float __pyx_v_t, float3 __pyx_v_m); /* proto*/
+static float3 __pyx_f_9macrospin_7kernels_11BasicKernel_field(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self, CYTHON_UNUSED float __pyx_v_t, float3 __pyx_v_m); /* proto*/
+static float3 __pyx_f_9macrospin_7kernels_11BasicKernel_torque(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self, float __pyx_v_t, float3 __pyx_v_m); /* proto*/
 static char *__pyx_memoryview_get_item_pointer(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_index); /* proto*/
 static PyObject *__pyx_memoryview_is_slice(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_obj); /* proto*/
 static PyObject *__pyx_memoryview_setitem_slice_assignment(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_dst, PyObject *__pyx_v_src); /* proto*/
@@ -1524,14 +1513,25 @@ static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, char *, char *, int *); /*proto*/
 
-/* Module declarations from 'macrospin.cpp.c_types' */
-static CYTHON_INLINE float3 __pyx_f_9macrospin_3cpp_7c_types_make_float3(__Pyx_memviewslice); /*proto*/
+/* Module declarations from 'macrospin.types' */
+static CYTHON_INLINE float3 __pyx_f_9macrospin_5types_make_float3(__Pyx_memviewslice); /*proto*/
 
-/* Module declarations from 'macrospin.cpp' */
+/* Module declarations from 'macrospin' */
 
-/* Module declarations from 'macrospin.cpp.c_kernels' */
+/* Module declarations from 'macrospin.field' */
+static CYTHON_INLINE float3 __pyx_f_9macrospin_5field_demagnetization(float3, float3); /*proto*/
 
-/* Module declarations from 'macrospin.cpp.c_solvers' */
+/* Module declarations from 'macrospin.torque' */
+static CYTHON_INLINE float3 __pyx_f_9macrospin_6torque_landau_lifshitz(float3, float3, float); /*proto*/
+
+/* Module declarations from 'macrospin.energy' */
+static CYTHON_INLINE float __pyx_f_9macrospin_6energy_zeeman(float3, float3); /*proto*/
+
+/* Module declarations from 'macrospin.solvers' */
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_euler_step(struct __pyx_obj_9macrospin_7kernels_Kernel *); /*proto*/
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_huen_step(struct __pyx_obj_9macrospin_7kernels_Kernel *); /*proto*/
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_rk23_step(struct __pyx_obj_9macrospin_7kernels_Kernel *); /*proto*/
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_rk4_step(struct __pyx_obj_9macrospin_7kernels_Kernel *); /*proto*/
 
 /* Module declarations from 'macrospin.kernels' */
 static PyTypeObject *__pyx_ptype_9macrospin_7kernels_Kernel = 0;
@@ -1583,8 +1583,8 @@ int __pyx_module_is_main_macrospin__kernels = 0;
 
 /* Implementation of 'macrospin.kernels' */
 static PyObject *__pyx_builtin_property;
-static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_range;
+static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_enumerate;
@@ -1593,15 +1593,16 @@ static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
-static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_parameters, char *__pyx_v_step_method); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_2load(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_time, PyObject *__pyx_v_internal_steps); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_moments, PyObject *__pyx_v_internal_steps); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10t(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_14reset(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9macrospin_7kernels_11BasicKernel_load(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self); /* proto */
+static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_parameters, PyObject *__pyx_v_step_method); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_2set_step_func(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_name); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4_load(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6run(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_time, PyObject *__pyx_v_internal_steps); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8times(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_moments, PyObject *__pyx_v_internal_steps); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10m(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_14t_sec(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_16reset(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9macrospin_7kernels_11BasicKernel__load(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -1667,11 +1668,13 @@ static char __pyx_k_dt[] = "dt";
 static char __pyx_k_id[] = "id";
 static char __pyx_k_m0[] = "m0";
 static char __pyx_k_np[] = "np";
+static char __pyx_k_RK4[] = "RK4";
 static char __pyx_k_obj[] = "obj";
 static char __pyx_k_Hext[] = "Hext";
+static char __pyx_k_Huen[] = "Huen";
 static char __pyx_k_RK23[] = "RK23";
 static char __pyx_k_base[] = "base";
-static char __pyx_k_load[] = "load";
+static char __pyx_k_load[] = "_load";
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_mode[] = "mode";
 static char __pyx_k_name[] = "name";
@@ -1682,6 +1685,7 @@ static char __pyx_k_step[] = "step";
 static char __pyx_k_stop[] = "stop";
 static char __pyx_k_test[] = "__test__";
 static char __pyx_k_time[] = "time";
+static char __pyx_k_Euler[] = "Euler";
 static char __pyx_k_array[] = "array";
 static char __pyx_k_class[] = "__class__";
 static char __pyx_k_dtype[] = "dtype";
@@ -1721,6 +1725,7 @@ static char __pyx_k_MemoryError[] = "MemoryError";
 static char __pyx_k_step_method[] = "step_method";
 static char __pyx_k_RuntimeError[] = "RuntimeError";
 static char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
+static char __pyx_k_set_step_func[] = "set_step_func";
 static char __pyx_k_internal_steps[] = "internal_steps";
 static char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static char __pyx_k_dtype_is_object[] = "dtype_is_object";
@@ -1762,9 +1767,11 @@ static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
 static PyObject *__pyx_kp_s_Cannot_index_with_type_s;
 static PyObject *__pyx_n_s_Ellipsis;
 static PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
+static PyObject *__pyx_n_s_Euler;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_n_s_Hext;
+static PyObject *__pyx_n_s_Huen;
 static PyObject *__pyx_n_s_IndexError;
 static PyObject *__pyx_kp_s_Indirect_dimensions_not_supporte;
 static PyObject *__pyx_kp_s_Invalid_mode_expected_c_or_fortr;
@@ -1776,6 +1783,8 @@ static PyObject *__pyx_n_s_Nd;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_n_b_O;
 static PyObject *__pyx_kp_s_Out_of_bounds_on_buffer_access_a;
+static PyObject *__pyx_n_s_RK23;
+static PyObject *__pyx_n_s_RK4;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
@@ -1829,6 +1838,7 @@ static PyObject *__pyx_n_s_pyx_getbuffer;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_reset;
+static PyObject *__pyx_n_s_set_step_func;
 static PyObject *__pyx_n_s_shape;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_start;
@@ -1853,6 +1863,7 @@ static PyObject *__pyx_n_s_xrange;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
+static PyObject *__pyx_int_2;
 static PyObject *__pyx_int_3;
 static PyObject *__pyx_int_250;
 static PyObject *__pyx_int_neg_1;
@@ -1879,19 +1890,19 @@ static PyObject *__pyx_tuple__20;
 static PyObject *__pyx_tuple__21;
 static PyObject *__pyx_tuple__22;
 
-/* "macrospin/kernels.pyx":27
- *         object parameters
+/* "macrospin/kernels.pyx":24
+ *     """
  * 
- *     def __cinit__(self, object parameters, char* step_method='RK23'):             # <<<<<<<<<<<<<<
+ *     def __cinit__(self, object parameters, step_method="RK23"):             # <<<<<<<<<<<<<<
  *         self.parameters = parameters.normalize()
- *         self.load()
+ *         self._load()
  */
 
 /* Python wrapper */
 static int __pyx_pw_9macrospin_7kernels_6Kernel_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static int __pyx_pw_9macrospin_7kernels_6Kernel_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_parameters = 0;
-  char *__pyx_v_step_method;
+  PyObject *__pyx_v_step_method = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1901,6 +1912,7 @@ static int __pyx_pw_9macrospin_7kernels_6Kernel_1__cinit__(PyObject *__pyx_v_sel
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_parameters,&__pyx_n_s_step_method,0};
     PyObject* values[2] = {0,0};
+    values[1] = ((PyObject *)__pyx_n_s_RK23);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
@@ -1922,7 +1934,7 @@ static int __pyx_pw_9macrospin_7kernels_6Kernel_1__cinit__(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1933,15 +1945,11 @@ static int __pyx_pw_9macrospin_7kernels_6Kernel_1__cinit__(PyObject *__pyx_v_sel
       }
     }
     __pyx_v_parameters = values[0];
-    if (values[1]) {
-      __pyx_v_step_method = __Pyx_PyObject_AsString(values[1]); if (unlikely((!__pyx_v_step_method) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
-    } else {
-      __pyx_v_step_method = ((char *)__pyx_k_RK23);
-    }
+    __pyx_v_step_method = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("macrospin.kernels.Kernel.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1954,25 +1962,26 @@ static int __pyx_pw_9macrospin_7kernels_6Kernel_1__cinit__(PyObject *__pyx_v_sel
   return __pyx_r;
 }
 
-static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_parameters, char *__pyx_v_step_method) {
+static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_parameters, PyObject *__pyx_v_step_method) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "macrospin/kernels.pyx":28
+  /* "macrospin/kernels.pyx":25
  * 
- *     def __cinit__(self, object parameters, char* step_method='RK23'):
+ *     def __cinit__(self, object parameters, step_method="RK23"):
  *         self.parameters = parameters.normalize()             # <<<<<<<<<<<<<<
- *         self.load()
+ *         self._load()
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_parameters, __pyx_n_s_normalize); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_parameters, __pyx_n_s_normalize); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -1985,10 +1994,10 @@ static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macr
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 25; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -1998,14 +2007,14 @@ static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macr
   __pyx_v_self->parameters = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "macrospin/kernels.pyx":29
- *     def __cinit__(self, object parameters, char* step_method='RK23'):
+  /* "macrospin/kernels.pyx":26
+ *     def __cinit__(self, object parameters, step_method="RK23"):
  *         self.parameters = parameters.normalize()
- *         self.load()             # <<<<<<<<<<<<<<
+ *         self._load()             # <<<<<<<<<<<<<<
  * 
- *         self.kernel.set_step_func(step_method)
+ *         self.set_step_func(step_method)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_load); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_load); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2018,32 +2027,23 @@ static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macr
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "macrospin/kernels.pyx":31
- *         self.load()
+  /* "macrospin/kernels.pyx":28
+ *         self._load()
  * 
- *         self.kernel.set_step_func(step_method)             # <<<<<<<<<<<<<<
+ *         self.set_step_func(step_method)             # <<<<<<<<<<<<<<
  * 
  *         self.reset()
  */
-  __pyx_v_self->kernel->set_step_func(__pyx_v_step_method);
-
-  /* "macrospin/kernels.pyx":33
- *         self.kernel.set_step_func(step_method)
- * 
- *         self.reset()             # <<<<<<<<<<<<<<
- * 
- *     # TODO: def __dealloc__(self):
- */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_reset); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_set_step_func); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2055,22 +2055,58 @@ static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macr
       __Pyx_DECREF_SET(__pyx_t_2, function);
     }
   }
-  if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (!__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_step_method); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
+    __Pyx_INCREF(__pyx_v_step_method);
+    PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_step_method);
+    __Pyx_GIVEREF(__pyx_v_step_method);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "macrospin/kernels.pyx":30
+ *         self.set_step_func(step_method)
+ * 
+ *         self.reset()             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_reset); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_4) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "macrospin/kernels.pyx":27
- *         object parameters
+  /* "macrospin/kernels.pyx":24
+ *     """
  * 
- *     def __cinit__(self, object parameters, char* step_method='RK23'):             # <<<<<<<<<<<<<<
+ *     def __cinit__(self, object parameters, step_method="RK23"):             # <<<<<<<<<<<<<<
  *         self.parameters = parameters.normalize()
- *         self.load()
+ *         self._load()
  */
 
   /* function exit code */
@@ -2080,6 +2116,7 @@ static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macr
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
   __Pyx_AddTraceback("macrospin.kernels.Kernel.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
@@ -2087,81 +2124,145 @@ static int __pyx_pf_9macrospin_7kernels_6Kernel___cinit__(struct __pyx_obj_9macr
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":37
+/* "macrospin/kernels.pyx":35
  *     # TODO: def __dealloc__(self):
  * 
- *     def load(self):             # <<<<<<<<<<<<<<
- *         """ Loads the parameters from the kernel (to be overwritten)
- *         """
+ *     def set_step_func(self, name):             # <<<<<<<<<<<<<<
+ *         if name == "Euler":
+ *             self.step_func = &(solvers.euler_step)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_3load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_2load[] = " Loads the parameters from the kernel (to be overwritten)\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_3load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_3set_step_func(PyObject *__pyx_v_self, PyObject *__pyx_v_name); /*proto*/
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_3set_step_func(PyObject *__pyx_v_self, PyObject *__pyx_v_name) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("load (wrapper)", 0);
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_2load(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("set_step_func (wrapper)", 0);
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_2set_step_func(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self), ((PyObject *)__pyx_v_name));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_2load(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_2set_step_func(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_name) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  Kernel *__pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
-  float __pyx_t_3;
+  int __pyx_t_1;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("load", 0);
+  __Pyx_RefNannySetupContext("set_step_func", 0);
+
+  /* "macrospin/kernels.pyx":36
+ * 
+ *     def set_step_func(self, name):
+ *         if name == "Euler":             # <<<<<<<<<<<<<<
+ *             self.step_func = &(solvers.euler_step)
+ *         elif name == "Huen":
+ */
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_name, __pyx_n_s_Euler, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_1) {
+
+    /* "macrospin/kernels.pyx":37
+ *     def set_step_func(self, name):
+ *         if name == "Euler":
+ *             self.step_func = &(solvers.euler_step)             # <<<<<<<<<<<<<<
+ *         elif name == "Huen":
+ *             self.step_func = &(solvers.huen_step)
+ */
+    __pyx_v_self->step_func = (&__pyx_f_9macrospin_7solvers_euler_step);
+    goto __pyx_L3;
+  }
+
+  /* "macrospin/kernels.pyx":38
+ *         if name == "Euler":
+ *             self.step_func = &(solvers.euler_step)
+ *         elif name == "Huen":             # <<<<<<<<<<<<<<
+ *             self.step_func = &(solvers.huen_step)
+ *         elif name == "RK23":
+ */
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_name, __pyx_n_s_Huen, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_1) {
+
+    /* "macrospin/kernels.pyx":39
+ *             self.step_func = &(solvers.euler_step)
+ *         elif name == "Huen":
+ *             self.step_func = &(solvers.huen_step)             # <<<<<<<<<<<<<<
+ *         elif name == "RK23":
+ *             self.step_func = &(solvers.rk23_step)
+ */
+    __pyx_v_self->step_func = (&__pyx_f_9macrospin_7solvers_huen_step);
+    goto __pyx_L3;
+  }
 
   /* "macrospin/kernels.pyx":40
- *         """ Loads the parameters from the kernel (to be overwritten)
- *         """
- *         self.kernel = new c_kernels.Kernel()             # <<<<<<<<<<<<<<
- *         self.kernel.dt = self.parameters['dt']
- * 
+ *         elif name == "Huen":
+ *             self.step_func = &(solvers.huen_step)
+ *         elif name == "RK23":             # <<<<<<<<<<<<<<
+ *             self.step_func = &(solvers.rk23_step)
+ *         elif name == "RK4":
  */
-  try {
-    __pyx_t_1 = new Kernel();
-  } catch(...) {
-    __Pyx_CppExn2PyErr();
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_name, __pyx_n_s_RK23, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_1) {
+
+    /* "macrospin/kernels.pyx":41
+ *             self.step_func = &(solvers.huen_step)
+ *         elif name == "RK23":
+ *             self.step_func = &(solvers.rk23_step)             # <<<<<<<<<<<<<<
+ *         elif name == "RK4":
+ *             self.step_func = &(solvers.rk4_step)
+ */
+    __pyx_v_self->step_func = (&__pyx_f_9macrospin_7solvers_rk23_step);
+    goto __pyx_L3;
   }
-  __pyx_v_self->kernel = __pyx_t_1;
 
-  /* "macrospin/kernels.pyx":41
- *         """
- *         self.kernel = new c_kernels.Kernel()
- *         self.kernel.dt = self.parameters['dt']             # <<<<<<<<<<<<<<
- * 
- *     def run(self, time=None, internal_steps=250):
+  /* "macrospin/kernels.pyx":42
+ *         elif name == "RK23":
+ *             self.step_func = &(solvers.rk23_step)
+ *         elif name == "RK4":             # <<<<<<<<<<<<<<
+ *             self.step_func = &(solvers.rk4_step)
+ *         else: # Default to RK23
  */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 41; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 41; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_self->kernel->dt = __pyx_t_3;
+  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_name, __pyx_n_s_RK4, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_1) {
 
-  /* "macrospin/kernels.pyx":37
+    /* "macrospin/kernels.pyx":43
+ *             self.step_func = &(solvers.rk23_step)
+ *         elif name == "RK4":
+ *             self.step_func = &(solvers.rk4_step)             # <<<<<<<<<<<<<<
+ *         else: # Default to RK23
+ *             self.step_func = &(solvers.rk23_step)
+ */
+    __pyx_v_self->step_func = (&__pyx_f_9macrospin_7solvers_rk4_step);
+    goto __pyx_L3;
+  }
+  /*else*/ {
+
+    /* "macrospin/kernels.pyx":45
+ *             self.step_func = &(solvers.rk4_step)
+ *         else: # Default to RK23
+ *             self.step_func = &(solvers.rk23_step)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+    __pyx_v_self->step_func = (&__pyx_f_9macrospin_7solvers_rk23_step);
+  }
+  __pyx_L3:;
+
+  /* "macrospin/kernels.pyx":35
  *     # TODO: def __dealloc__(self):
  * 
- *     def load(self):             # <<<<<<<<<<<<<<
- *         """ Loads the parameters from the kernel (to be overwritten)
- *         """
+ *     def set_step_func(self, name):             # <<<<<<<<<<<<<<
+ *         if name == "Euler":
+ *             self.step_func = &(solvers.euler_step)
  */
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("macrospin.kernels.Kernel.load", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("macrospin.kernels.Kernel.set_step_func", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2169,8 +2270,74 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_2load(struct __pyx_obj_9ma
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":43
- *         self.kernel.dt = self.parameters['dt']
+/* "macrospin/kernels.pyx":48
+ * 
+ * 
+ *     def _load(self):             # <<<<<<<<<<<<<<
+ *         """ Loads the parameters from the kernel (to be extended)
+ *         """
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_5_load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_4_load[] = " Loads the parameters from the kernel (to be extended)\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_5_load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("_load (wrapper)", 0);
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_4_load(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4_load(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  float __pyx_t_2;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_load", 0);
+
+  /* "macrospin/kernels.pyx":51
+ *         """ Loads the parameters from the kernel (to be extended)
+ *         """
+ *         self.dt = self.parameters['dt']             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_self->dt = __pyx_t_2;
+
+  /* "macrospin/kernels.pyx":48
+ * 
+ * 
+ *     def _load(self):             # <<<<<<<<<<<<<<
+ *         """ Loads the parameters from the kernel (to be extended)
+ *         """
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("macrospin.kernels.Kernel._load", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/kernels.pyx":54
+ * 
  * 
  *     def run(self, time=None, internal_steps=250):             # <<<<<<<<<<<<<<
  *         """ Run the simulation for a given time
@@ -2178,9 +2345,9 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_2load(struct __pyx_obj_9ma
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_5run(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_4run[] = " Run the simulation for a given time\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_5run(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_7run(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_6run[] = " Run the simulation for a given time\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_7run(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_time = 0;
   PyObject *__pyx_v_internal_steps = 0;
   int __pyx_lineno = 0;
@@ -2217,7 +2384,7 @@ static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_5run(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "run") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "run") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2232,20 +2399,20 @@ static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_5run(PyObject *__pyx_v_sel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("run", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("run", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("macrospin.kernels.Kernel.run", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_4run(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self), __pyx_v_time, __pyx_v_internal_steps);
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_6run(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self), __pyx_v_time, __pyx_v_internal_steps);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_time, PyObject *__pyx_v_internal_steps) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6run(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_time, PyObject *__pyx_v_internal_steps) {
   PyObject *__pyx_v_steps = NULL;
   __Pyx_memviewslice __pyx_v_moments = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_times = NULL;
@@ -2268,55 +2435,55 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9mac
   __Pyx_RefNannySetupContext("run", 0);
   __Pyx_INCREF(__pyx_v_time);
 
-  /* "macrospin/kernels.pyx":46
+  /* "macrospin/kernels.pyx":57
  *         """ Run the simulation for a given time
  *         """
  *         time *= self.parameters['time_conversion']             # <<<<<<<<<<<<<<
  *         steps = int(time/self.parameters['dt']/internal_steps)
  * 
  */
-  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_time_conversion); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_time_conversion); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_InPlaceMultiply(__pyx_v_time, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyNumber_InPlaceMultiply(__pyx_v_time, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF_SET(__pyx_v_time, __pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "macrospin/kernels.pyx":47
+  /* "macrospin/kernels.pyx":58
  *         """
  *         time *= self.parameters['time_conversion']
  *         steps = int(time/self.parameters['dt']/internal_steps)             # <<<<<<<<<<<<<<
  * 
  *         cdef float[:,::1] moments = np.zeros((steps, 3), dtype=np.float32)
  */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_v_time, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_v_time, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_v_internal_steps); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_v_internal_steps); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Int(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Int(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_steps = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "macrospin/kernels.pyx":49
+  /* "macrospin/kernels.pyx":60
  *         steps = int(time/self.parameters['dt']/internal_steps)
  * 
  *         cdef float[:,::1] moments = np.zeros((steps, 3), dtype=np.float32)             # <<<<<<<<<<<<<<
  *         times = self.times(moments, internal_steps)
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_steps);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_steps);
@@ -2324,42 +2491,42 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9mac
   __Pyx_INCREF(__pyx_int_3);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_int_3);
   __Pyx_GIVEREF(__pyx_int_3);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(__pyx_t_5);
-  if (unlikely(!__pyx_t_6.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_6.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_moments = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "macrospin/kernels.pyx":50
+  /* "macrospin/kernels.pyx":61
  * 
  *         cdef float[:,::1] moments = np.zeros((steps, 3), dtype=np.float32)
  *         times = self.times(moments, internal_steps)             # <<<<<<<<<<<<<<
  * 
  *         self._evolve(&moments[0][0], steps, internal_steps)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_times); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_times); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_moments, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_moments, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_2 = NULL;
   __pyx_t_7 = 0;
@@ -2373,7 +2540,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9mac
       __pyx_t_7 = 1;
     }
   }
-  __pyx_t_4 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   if (__pyx_t_2) {
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
@@ -2384,14 +2551,14 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9mac
   PyTuple_SET_ITEM(__pyx_t_4, 1+__pyx_t_7, __pyx_v_internal_steps);
   __Pyx_GIVEREF(__pyx_v_internal_steps);
   __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_times = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "macrospin/kernels.pyx":52
+  /* "macrospin/kernels.pyx":63
  *         times = self.times(moments, internal_steps)
  * 
  *         self._evolve(&moments[0][0], steps, internal_steps)             # <<<<<<<<<<<<<<
@@ -2410,7 +2577,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_4run(struct __pyx_obj_9mac
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (1 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
         __pyx_t_8.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -2427,26 +2594,24 @@ __pyx_t_7 = 0;
   } else if (unlikely(__pyx_t_7 >= __pyx_t_8.shape[0])) __pyx_t_9 = 0;
   if (unlikely(__pyx_t_9 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_9);
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_t_10 = __Pyx_PyInt_As_long(__pyx_v_steps); if (unlikely((__pyx_t_10 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_11 = __Pyx_PyInt_As_long(__pyx_v_internal_steps); if (unlikely((__pyx_t_11 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_5 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_self->__pyx_vtab)->_evolve(__pyx_v_self, (&(*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_t_8.data) + __pyx_t_7)) )))), __pyx_t_10, __pyx_t_11); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_10 = __Pyx_PyInt_As_long(__pyx_v_steps); if (unlikely((__pyx_t_10 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyInt_As_long(__pyx_v_internal_steps); if (unlikely((__pyx_t_11 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_self->__pyx_vtab)->_evolve(__pyx_v_self, (&(*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_t_8.data) + __pyx_t_7)) )))), __pyx_t_10, __pyx_t_11);
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "macrospin/kernels.pyx":54
+  /* "macrospin/kernels.pyx":65
  *         self._evolve(&moments[0][0], steps, internal_steps)
  * 
  *         return times, moments             # <<<<<<<<<<<<<<
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_moments, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_moments, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_times);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_times);
@@ -2458,8 +2623,8 @@ __pyx_t_7 = 0;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "macrospin/kernels.pyx":43
- *         self.kernel.dt = self.parameters['dt']
+  /* "macrospin/kernels.pyx":54
+ * 
  * 
  *     def run(self, time=None, internal_steps=250):             # <<<<<<<<<<<<<<
  *         """ Run the simulation for a given time
@@ -2487,45 +2652,202 @@ __pyx_t_7 = 0;
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":56
- *         return times, moments
+/* "macrospin/kernels.pyx":68
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):             # <<<<<<<<<<<<<<
- *         self.kernel.evolve(moments_ptr, steps, internal_steps)
+ * 
+ *     cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps):             # <<<<<<<<<<<<<<
+ *         """ Takes steps
  * 
  */
 
-static PyObject *__pyx_f_9macrospin_7kernels_6Kernel__evolve(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, float *__pyx_v_moments_ptr, long __pyx_v_steps, long __pyx_v_internal_steps) {
-  PyObject *__pyx_r = NULL;
+static void __pyx_f_9macrospin_7kernels_6Kernel__evolve(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, float *__pyx_v_moments_ptr, long __pyx_v_external_steps, long __pyx_v_internal_steps) {
+  PyObject *__pyx_v_i = NULL;
+  CYTHON_UNUSED long __pyx_v_j;
   __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  Py_ssize_t __pyx_t_3;
+  PyObject *(*__pyx_t_4)(PyObject *);
+  long __pyx_t_5;
+  long __pyx_t_6;
+  struct __pyx_t_9macrospin_7kernels_Step __pyx_t_7;
+  float __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  PyObject *__pyx_t_10 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_evolve", 0);
 
-  /* "macrospin/kernels.pyx":57
+  /* "macrospin/kernels.pyx":77
+ *         """
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):
- *         self.kernel.evolve(moments_ptr, steps, internal_steps)             # <<<<<<<<<<<<<<
- * 
- *     def times(self, moments, internal_steps=250):
+ *         for i in range(external_steps):             # <<<<<<<<<<<<<<
+ *             for j in range(internal_steps):
+ *                 self.previous = self.current
  */
-  __pyx_v_self->kernel->evolve(__pyx_v_moments_ptr, __pyx_v_steps, __pyx_v_internal_steps);
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_external_steps); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
+    __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
+    __pyx_t_4 = NULL;
+  } else {
+    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  for (;;) {
+    if (likely(!__pyx_t_4)) {
+      if (likely(PyList_CheckExact(__pyx_t_2))) {
+        if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
+        #if CYTHON_COMPILING_IN_CPYTHON
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        #endif
+      } else {
+        if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
+        #if CYTHON_COMPILING_IN_CPYTHON
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        #endif
+      }
+    } else {
+      __pyx_t_1 = __pyx_t_4(__pyx_t_2);
+      if (unlikely(!__pyx_t_1)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_1);
+    __pyx_t_1 = 0;
 
-  /* "macrospin/kernels.pyx":56
- *         return times, moments
+    /* "macrospin/kernels.pyx":78
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):             # <<<<<<<<<<<<<<
- *         self.kernel.evolve(moments_ptr, steps, internal_steps)
+ *         for i in range(external_steps):
+ *             for j in range(internal_steps):             # <<<<<<<<<<<<<<
+ *                 self.previous = self.current
+ *                 self.step_func(self)
+ */
+    __pyx_t_5 = __pyx_v_internal_steps;
+    for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
+      __pyx_v_j = __pyx_t_6;
+
+      /* "macrospin/kernels.pyx":79
+ *         for i in range(external_steps):
+ *             for j in range(internal_steps):
+ *                 self.previous = self.current             # <<<<<<<<<<<<<<
+ *                 self.step_func(self)
+ * 
+ */
+      __pyx_t_7 = __pyx_v_self->current;
+      __pyx_v_self->previous = __pyx_t_7;
+
+      /* "macrospin/kernels.pyx":80
+ *             for j in range(internal_steps):
+ *                 self.previous = self.current
+ *                 self.step_func(self)             # <<<<<<<<<<<<<<
+ * 
+ *             moments_ptr[3*i] = self.current.m.x;
+ */
+      __pyx_v_self->step_func(__pyx_v_self);
+    }
+
+    /* "macrospin/kernels.pyx":82
+ *                 self.step_func(self)
+ * 
+ *             moments_ptr[3*i] = self.current.m.x;             # <<<<<<<<<<<<<<
+ *             moments_ptr[3*i+1] = self.current.m.y;
+ *             moments_ptr[3*i+2] = self.current.m.z;
+ */
+    __pyx_t_8 = __pyx_v_self->current.m.x;
+    __pyx_t_1 = PyNumber_Multiply(__pyx_int_3, __pyx_v_i); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_9 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_9 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    (__pyx_v_moments_ptr[__pyx_t_9]) = __pyx_t_8;
+
+    /* "macrospin/kernels.pyx":83
+ * 
+ *             moments_ptr[3*i] = self.current.m.x;
+ *             moments_ptr[3*i+1] = self.current.m.y;             # <<<<<<<<<<<<<<
+ *             moments_ptr[3*i+2] = self.current.m.z;
+ * 
+ */
+    __pyx_t_8 = __pyx_v_self->current.m.y;
+    __pyx_t_1 = PyNumber_Multiply(__pyx_int_3, __pyx_v_i); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_10 = PyNumber_Add(__pyx_t_1, __pyx_int_1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_9 = __Pyx_PyIndex_AsSsize_t(__pyx_t_10); if (unlikely((__pyx_t_9 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    (__pyx_v_moments_ptr[__pyx_t_9]) = __pyx_t_8;
+
+    /* "macrospin/kernels.pyx":84
+ *             moments_ptr[3*i] = self.current.m.x;
+ *             moments_ptr[3*i+1] = self.current.m.y;
+ *             moments_ptr[3*i+2] = self.current.m.z;             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+    __pyx_t_8 = __pyx_v_self->current.m.z;
+    __pyx_t_10 = PyNumber_Multiply(__pyx_int_3, __pyx_v_i); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_1 = PyNumber_Add(__pyx_t_10, __pyx_int_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_9 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_9 == (Py_ssize_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    (__pyx_v_moments_ptr[__pyx_t_9]) = __pyx_t_8;
+
+    /* "macrospin/kernels.pyx":77
+ *         """
+ * 
+ *         for i in range(external_steps):             # <<<<<<<<<<<<<<
+ *             for j in range(internal_steps):
+ *                 self.previous = self.current
+ */
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "macrospin/kernels.pyx":68
+ * 
+ * 
+ *     cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps):             # <<<<<<<<<<<<<<
+ *         """ Takes steps
  * 
  */
 
   /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  __Pyx_XGIVEREF(__pyx_r);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_WriteUnraisable("macrospin.kernels.Kernel._evolve", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_i);
   __Pyx_RefNannyFinishContext();
-  return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":59
- *         self.kernel.evolve(moments_ptr, steps, internal_steps)
+/* "macrospin/kernels.pyx":87
+ * 
  * 
  *     def times(self, moments, internal_steps=250):             # <<<<<<<<<<<<<<
  *         """ Returns an array of times that correspond to the moments array
@@ -2533,9 +2855,9 @@ static PyObject *__pyx_f_9macrospin_7kernels_6Kernel__evolve(struct __pyx_obj_9m
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_7times(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_6times[] = " Returns an array of times that correspond to the moments array\n        that is about to be run\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_7times(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_9times(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_8times[] = " Returns an array of times that correspond to the moments array\n        that is about to be run\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_9times(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_moments = 0;
   PyObject *__pyx_v_internal_steps = 0;
   int __pyx_lineno = 0;
@@ -2569,7 +2891,7 @@ static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_7times(PyObject *__pyx_v_s
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "times") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "times") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2584,20 +2906,20 @@ static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_7times(PyObject *__pyx_v_s
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("times", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("times", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("macrospin.kernels.Kernel.times", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_6times(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self), __pyx_v_moments, __pyx_v_internal_steps);
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_8times(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self), __pyx_v_moments, __pyx_v_internal_steps);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_moments, PyObject *__pyx_v_internal_steps) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8times(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, PyObject *__pyx_v_moments, PyObject *__pyx_v_internal_steps) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2612,7 +2934,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9m
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("times", 0);
 
-  /* "macrospin/kernels.pyx":63
+  /* "macrospin/kernels.pyx":91
  *         that is about to be run
  *         """
  *         return (self.t + internal_steps*self.parameters['dt']*(             # <<<<<<<<<<<<<<
@@ -2620,29 +2942,29 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9m
  *                 self.parameters['time_conversion'])
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyNumber_Multiply(__pyx_v_internal_steps, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyNumber_Multiply(__pyx_v_internal_steps, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "macrospin/kernels.pyx":64
+  /* "macrospin/kernels.pyx":92
  *         """
  *         return (self.t + internal_steps*self.parameters['dt']*(
  *                 1 + np.arange(moments.shape[0])))/(             # <<<<<<<<<<<<<<
  *                 self.parameters['time_conversion'])
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_arange); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_arange); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_moments, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_moments, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_6 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -2656,59 +2978,59 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9m
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_2);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_6);
     __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Add(__pyx_int_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyNumber_Add(__pyx_int_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "macrospin/kernels.pyx":63
+  /* "macrospin/kernels.pyx":91
  *         that is about to be run
  *         """
  *         return (self.t + internal_steps*self.parameters['dt']*(             # <<<<<<<<<<<<<<
  *                 1 + np.arange(moments.shape[0])))/(
  *                 self.parameters['time_conversion'])
  */
-  __pyx_t_2 = PyNumber_Multiply(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyNumber_Multiply(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "macrospin/kernels.pyx":65
+  /* "macrospin/kernels.pyx":93
  *         return (self.t + internal_steps*self.parameters['dt']*(
  *                 1 + np.arange(moments.shape[0])))/(
  *                 self.parameters['time_conversion'])             # <<<<<<<<<<<<<<
  * 
- *     @property
+ * 
  */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_time_conversion); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_time_conversion); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "macrospin/kernels.pyx":64
+  /* "macrospin/kernels.pyx":92
  *         """
  *         return (self.t + internal_steps*self.parameters['dt']*(
  *                 1 + np.arange(moments.shape[0])))/(             # <<<<<<<<<<<<<<
  *                 self.parameters['time_conversion'])
  * 
  */
-  __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2716,8 +3038,8 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9m
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "macrospin/kernels.pyx":59
- *         self.kernel.evolve(moments_ptr, steps, internal_steps)
+  /* "macrospin/kernels.pyx":87
+ * 
  * 
  *     def times(self, moments, internal_steps=250):             # <<<<<<<<<<<<<<
  *         """ Returns an array of times that correspond to the moments array
@@ -2741,7 +3063,120 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9m
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":68
+/* "macrospin/kernels.pyx":96
+ * 
+ * 
+ *     cdef float3 field(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         cdef float3 field
+ *         return field
+ */
+
+static float3 __pyx_f_9macrospin_7kernels_6Kernel_field(CYTHON_UNUSED struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, CYTHON_UNUSED float __pyx_v_t, CYTHON_UNUSED float3 __pyx_v_m) {
+  float3 __pyx_v_field;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("field", 0);
+
+  /* "macrospin/kernels.pyx":98
+ *     cdef float3 field(self, float t, float3 m):
+ *         cdef float3 field
+ *         return field             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = __pyx_v_field;
+  goto __pyx_L0;
+
+  /* "macrospin/kernels.pyx":96
+ * 
+ * 
+ *     cdef float3 field(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         cdef float3 field
+ *         return field
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/kernels.pyx":101
+ * 
+ * 
+ *     cdef float3 torque(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         cdef float3 torque
+ *         return torque
+ */
+
+static float3 __pyx_f_9macrospin_7kernels_6Kernel_torque(CYTHON_UNUSED struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, CYTHON_UNUSED float __pyx_v_t, CYTHON_UNUSED float3 __pyx_v_m) {
+  float3 __pyx_v_torque;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("torque", 0);
+
+  /* "macrospin/kernels.pyx":103
+ *     cdef float3 torque(self, float t, float3 m):
+ *         cdef float3 torque
+ *         return torque             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = __pyx_v_torque;
+  goto __pyx_L0;
+
+  /* "macrospin/kernels.pyx":101
+ * 
+ * 
+ *     cdef float3 torque(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         cdef float3 torque
+ *         return torque
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/kernels.pyx":106
+ * 
+ * 
+ *     cdef float energy(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         return energy.zeeman(m, self.field(t, m))
+ * 
+ */
+
+static float __pyx_f_9macrospin_7kernels_6Kernel_energy(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self, float __pyx_v_t, float3 __pyx_v_m) {
+  float __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("energy", 0);
+
+  /* "macrospin/kernels.pyx":107
+ * 
+ *     cdef float energy(self, float t, float3 m):
+ *         return energy.zeeman(m, self.field(t, m))             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = __pyx_f_9macrospin_6energy_zeeman(__pyx_v_m, ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_self->__pyx_vtab)->field(__pyx_v_self, __pyx_v_t, __pyx_v_m));
+  goto __pyx_L0;
+
+  /* "macrospin/kernels.pyx":106
+ * 
+ * 
+ *     cdef float energy(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         return energy.zeeman(m, self.field(t, m))
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/kernels.pyx":111
  * 
  *     @property
  *     def m(self):             # <<<<<<<<<<<<<<
@@ -2750,20 +3185,20 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_6times(struct __pyx_obj_9m
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_9m(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_8m[] = " Returns the moment unit vector as a numpy array\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_9m(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_11m(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_10m[] = " Returns the moment unit vector as a numpy array\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_11m(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("m (wrapper)", 0);
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_8m(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_10m(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10m(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
   float3 __pyx_v_m;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -2778,36 +3213,36 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macro
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("m", 0);
 
-  /* "macrospin/kernels.pyx":71
+  /* "macrospin/kernels.pyx":114
  *         """ Returns the moment unit vector as a numpy array
  *         """
- *         cdef float3 m = self.kernel.current.m             # <<<<<<<<<<<<<<
+ *         cdef float3 m = self.current.m             # <<<<<<<<<<<<<<
  *         return np.array([m.x, m.y, m.z], dtype=np.float32)
  * 
  */
-  __pyx_t_1 = __pyx_v_self->kernel->current.m;
+  __pyx_t_1 = __pyx_v_self->current.m;
   __pyx_v_m = __pyx_t_1;
 
-  /* "macrospin/kernels.pyx":72
+  /* "macrospin/kernels.pyx":115
  *         """
- *         cdef float3 m = self.kernel.current.m
+ *         cdef float3 m = self.current.m
  *         return np.array([m.x, m.y, m.z], dtype=np.float32)             # <<<<<<<<<<<<<<
  * 
- *     @property
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_m.x); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_m.x); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_m.y); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_m.y); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_m.z); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_m.z); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
@@ -2818,21 +3253,21 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macro
   __pyx_t_2 = 0;
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_6);
   __pyx_t_6 = 0;
-  __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -2841,7 +3276,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macro
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "macrospin/kernels.pyx":68
+  /* "macrospin/kernels.pyx":111
  * 
  *     @property
  *     def m(self):             # <<<<<<<<<<<<<<
@@ -2864,7 +3299,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macro
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":75
+/* "macrospin/kernels.pyx":119
  * 
  *     @property
  *     def t(self):             # <<<<<<<<<<<<<<
@@ -2873,20 +3308,20 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_8m(struct __pyx_obj_9macro
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_11t(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_10t[] = " Returns the simulation time in units of (gamma Ms)\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_11t(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_13t(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_12t[] = " Returns the simulation time in units of (gamma Ms)\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_13t(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("t (wrapper)", 0);
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_10t(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_12t(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10t(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2895,21 +3330,21 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10t(struct __pyx_obj_9macr
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("t", 0);
 
-  /* "macrospin/kernels.pyx":78
+  /* "macrospin/kernels.pyx":122
  *         """ Returns the simulation time in units of (gamma Ms)
  *         """
- *         return self.kernel.current.t             # <<<<<<<<<<<<<<
+ *         return self.current.t             # <<<<<<<<<<<<<<
  * 
- *     @property
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->kernel->current.t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->current.t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "macrospin/kernels.pyx":75
+  /* "macrospin/kernels.pyx":119
  * 
  *     @property
  *     def t(self):             # <<<<<<<<<<<<<<
@@ -2928,7 +3363,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10t(struct __pyx_obj_9macr
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":81
+/* "macrospin/kernels.pyx":126
  * 
  *     @property
  *     def t_sec(self):             # <<<<<<<<<<<<<<
@@ -2937,20 +3372,20 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_10t(struct __pyx_obj_9macr
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_13t_sec(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_12t_sec[] = " Returns the simulation time in seconds\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_13t_sec(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_15t_sec(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_14t_sec[] = " Returns the simulation time in seconds\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_15t_sec(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("t_sec (wrapper)", 0);
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_14t_sec(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_14t_sec(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2961,19 +3396,19 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(struct __pyx_obj_9
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("t_sec", 0);
 
-  /* "macrospin/kernels.pyx":84
+  /* "macrospin/kernels.pyx":129
  *         """ Returns the simulation time in seconds
  *         """
- *         return self.kernel.current.t/self.parameters['time_conversion']             # <<<<<<<<<<<<<<
+ *         return self.current.t/self.parameters['time_conversion']             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->kernel->current.t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->current.t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_time_conversion); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_time_conversion); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2981,7 +3416,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(struct __pyx_obj_9
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "macrospin/kernels.pyx":81
+  /* "macrospin/kernels.pyx":126
  * 
  *     @property
  *     def t_sec(self):             # <<<<<<<<<<<<<<
@@ -3002,7 +3437,7 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(struct __pyx_obj_9
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":87
+/* "macrospin/kernels.pyx":132
  * 
  * 
  *     def reset(self):             # <<<<<<<<<<<<<<
@@ -3011,20 +3446,20 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_12t_sec(struct __pyx_obj_9
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_15reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_6Kernel_14reset[] = " Resets the kernel to the initial conditions\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_15reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_17reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_6Kernel_16reset[] = " Resets the kernel to the initial conditions\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_6Kernel_17reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("reset (wrapper)", 0);
-  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_14reset(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
+  __pyx_r = __pyx_pf_9macrospin_7kernels_6Kernel_16reset(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_14reset(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
+static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_16reset(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3034,40 +3469,40 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_14reset(struct __pyx_obj_9
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("reset", 0);
 
-  /* "macrospin/kernels.pyx":90
+  /* "macrospin/kernels.pyx":135
  *         """ Resets the kernel to the initial conditions
  *         """
- *         self.kernel.current.m = make_float3(self.parameters['m0'])             # <<<<<<<<<<<<<<
- *         self.kernel.current.t = 0.0
- *         self.kernel.current.torque = self.kernel.torque(self.kernel.current.t,
+ *         self.current.m = make_float3(self.parameters['m0'])             # <<<<<<<<<<<<<<
+ *         self.current.t = 0.0
+ *         self.current.torque = self.torque(self.current.t, self.current.m)
  */
-  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_m0); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->parameters, __pyx_n_s_m0); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_dc_float(__pyx_t_1);
-  if (unlikely(!__pyx_t_2.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_2.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_self->kernel->current.m = __pyx_f_9macrospin_3cpp_7c_types_make_float3(__pyx_t_2);
+  __pyx_v_self->current.m = __pyx_f_9macrospin_5types_make_float3(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_2, 1);
 
-  /* "macrospin/kernels.pyx":91
+  /* "macrospin/kernels.pyx":136
  *         """
- *         self.kernel.current.m = make_float3(self.parameters['m0'])
- *         self.kernel.current.t = 0.0             # <<<<<<<<<<<<<<
- *         self.kernel.current.torque = self.kernel.torque(self.kernel.current.t,
- *             self.kernel.current.m)
- */
-  __pyx_v_self->kernel->current.t = 0.0;
-
-  /* "macrospin/kernels.pyx":92
- *         self.kernel.current.m = make_float3(self.parameters['m0'])
- *         self.kernel.current.t = 0.0
- *         self.kernel.current.torque = self.kernel.torque(self.kernel.current.t,             # <<<<<<<<<<<<<<
- *             self.kernel.current.m)
+ *         self.current.m = make_float3(self.parameters['m0'])
+ *         self.current.t = 0.0             # <<<<<<<<<<<<<<
+ *         self.current.torque = self.torque(self.current.t, self.current.m)
  * 
  */
-  __pyx_v_self->kernel->current.torque = __pyx_v_self->kernel->torque(__pyx_v_self->kernel->current.t, __pyx_v_self->kernel->current.m);
+  __pyx_v_self->current.t = 0.0;
 
-  /* "macrospin/kernels.pyx":87
+  /* "macrospin/kernels.pyx":137
+ *         self.current.m = make_float3(self.parameters['m0'])
+ *         self.current.t = 0.0
+ *         self.current.torque = self.torque(self.current.t, self.current.m)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_v_self->current.torque = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_self->__pyx_vtab)->torque(__pyx_v_self, __pyx_v_self->current.t, __pyx_v_self->current.m);
+
+  /* "macrospin/kernels.pyx":132
  * 
  * 
  *     def reset(self):             # <<<<<<<<<<<<<<
@@ -3089,115 +3524,99 @@ static PyObject *__pyx_pf_9macrospin_7kernels_6Kernel_14reset(struct __pyx_obj_9
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":103
- * cdef class BasicKernel(Kernel):
+/* "macrospin/kernels.pyx":151
  * 
- *     def load(self):             # <<<<<<<<<<<<<<
+ * 
+ *     def _load(self):             # <<<<<<<<<<<<<<
  *         """ Loads the parameters from the kernel (overwritting Kernel.load)
  *         """
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9macrospin_7kernels_11BasicKernel_1load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_9macrospin_7kernels_11BasicKernel_load[] = " Loads the parameters from the kernel (overwritting Kernel.load)\n        ";
-static PyObject *__pyx_pw_9macrospin_7kernels_11BasicKernel_1load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9macrospin_7kernels_11BasicKernel_1_load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_9macrospin_7kernels_11BasicKernel__load[] = " Loads the parameters from the kernel (overwritting Kernel.load)\n        ";
+static PyObject *__pyx_pw_9macrospin_7kernels_11BasicKernel_1_load(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("load (wrapper)", 0);
-  __pyx_r = __pyx_pf_9macrospin_7kernels_11BasicKernel_load(((struct __pyx_obj_9macrospin_7kernels_BasicKernel *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("_load (wrapper)", 0);
+  __pyx_r = __pyx_pf_9macrospin_7kernels_11BasicKernel__load(((struct __pyx_obj_9macrospin_7kernels_BasicKernel *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9macrospin_7kernels_11BasicKernel_load(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self) {
+static PyObject *__pyx_pf_9macrospin_7kernels_11BasicKernel__load(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  BasicKernel *__pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
-  float __pyx_t_3;
-  __Pyx_memviewslice __pyx_t_4 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  PyObject *__pyx_t_1 = NULL;
+  float __pyx_t_2;
+  __Pyx_memviewslice __pyx_t_3 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("load", 0);
+  __Pyx_RefNannySetupContext("_load", 0);
 
-  /* "macrospin/kernels.pyx":106
+  /* "macrospin/kernels.pyx":154
  *         """ Loads the parameters from the kernel (overwritting Kernel.load)
  *         """
- *         self.kernel = <c_kernels.Kernel *> new c_kernels.BasicKernel()             # <<<<<<<<<<<<<<
- *         self.kernel.dt = self.parameters['dt']
- *         (<c_kernels.BasicKernel *>self.kernel).alpha = self.parameters['damping']
+ *         self.dt = self.parameters['dt']             # <<<<<<<<<<<<<<
+ *         self.alpha = self.parameters['damping']
+ *         self.hext = make_float3(self.parameters['Hext'])
  */
-  try {
-    __pyx_t_1 = new BasicKernel();
-  } catch(...) {
-    __Pyx_CppExn2PyErr();
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  }
-  __pyx_v_self->__pyx_base.kernel = ((Kernel *)__pyx_t_1);
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_self->__pyx_base.dt = __pyx_t_2;
 
-  /* "macrospin/kernels.pyx":107
+  /* "macrospin/kernels.pyx":155
  *         """
- *         self.kernel = <c_kernels.Kernel *> new c_kernels.BasicKernel()
- *         self.kernel.dt = self.parameters['dt']             # <<<<<<<<<<<<<<
- *         (<c_kernels.BasicKernel *>self.kernel).alpha = self.parameters['damping']
- *         (<c_kernels.BasicKernel *>self.kernel).hext = make_float3(self.parameters['Hext'])
+ *         self.dt = self.parameters['dt']
+ *         self.alpha = self.parameters['damping']             # <<<<<<<<<<<<<<
+ *         self.hext = make_float3(self.parameters['Hext'])
+ *         self.Nd = make_float3(self.parameters['Nd'])
  */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_dt); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_self->__pyx_base.kernel->dt = __pyx_t_3;
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_damping); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_self->alpha = __pyx_t_2;
 
-  /* "macrospin/kernels.pyx":108
- *         self.kernel = <c_kernels.Kernel *> new c_kernels.BasicKernel()
- *         self.kernel.dt = self.parameters['dt']
- *         (<c_kernels.BasicKernel *>self.kernel).alpha = self.parameters['damping']             # <<<<<<<<<<<<<<
- *         (<c_kernels.BasicKernel *>self.kernel).hext = make_float3(self.parameters['Hext'])
- *         (<c_kernels.BasicKernel *>self.kernel).Nd = make_float3(self.parameters['Nd'])
- */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_damping); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  ((BasicKernel *)__pyx_v_self->__pyx_base.kernel)->alpha = __pyx_t_3;
-
-  /* "macrospin/kernels.pyx":109
- *         self.kernel.dt = self.parameters['dt']
- *         (<c_kernels.BasicKernel *>self.kernel).alpha = self.parameters['damping']
- *         (<c_kernels.BasicKernel *>self.kernel).hext = make_float3(self.parameters['Hext'])             # <<<<<<<<<<<<<<
- *         (<c_kernels.BasicKernel *>self.kernel).Nd = make_float3(self.parameters['Nd'])
+  /* "macrospin/kernels.pyx":156
+ *         self.dt = self.parameters['dt']
+ *         self.alpha = self.parameters['damping']
+ *         self.hext = make_float3(self.parameters['Hext'])             # <<<<<<<<<<<<<<
+ *         self.Nd = make_float3(self.parameters['Nd'])
  * 
  */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_Hext); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dc_float(__pyx_t_2);
-  if (unlikely(!__pyx_t_4.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  ((BasicKernel *)__pyx_v_self->__pyx_base.kernel)->hext = __pyx_f_9macrospin_3cpp_7c_types_make_float3(__pyx_t_4);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_Hext); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_dc_float(__pyx_t_1);
+  if (unlikely(!__pyx_t_3.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_self->hext = __pyx_f_9macrospin_5types_make_float3(__pyx_t_3);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
 
-  /* "macrospin/kernels.pyx":110
- *         (<c_kernels.BasicKernel *>self.kernel).alpha = self.parameters['damping']
- *         (<c_kernels.BasicKernel *>self.kernel).hext = make_float3(self.parameters['Hext'])
- *         (<c_kernels.BasicKernel *>self.kernel).Nd = make_float3(self.parameters['Nd'])             # <<<<<<<<<<<<<<
+  /* "macrospin/kernels.pyx":157
+ *         self.alpha = self.parameters['damping']
+ *         self.hext = make_float3(self.parameters['Hext'])
+ *         self.Nd = make_float3(self.parameters['Nd'])             # <<<<<<<<<<<<<<
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):
+ * 
  */
-  __pyx_t_2 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_Nd); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dc_float(__pyx_t_2);
-  if (unlikely(!__pyx_t_4.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  ((BasicKernel *)__pyx_v_self->__pyx_base.kernel)->Nd = __pyx_f_9macrospin_3cpp_7c_types_make_float3(__pyx_t_4);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
+  __pyx_t_1 = PyObject_GetItem(__pyx_v_self->__pyx_base.parameters, __pyx_n_s_Nd); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_dc_float(__pyx_t_1);
+  if (unlikely(!__pyx_t_3.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_self->Nd = __pyx_f_9macrospin_5types_make_float3(__pyx_t_3);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
 
-  /* "macrospin/kernels.pyx":103
- * cdef class BasicKernel(Kernel):
+  /* "macrospin/kernels.pyx":151
  * 
- *     def load(self):             # <<<<<<<<<<<<<<
+ * 
+ *     def _load(self):             # <<<<<<<<<<<<<<
  *         """ Loads the parameters from the kernel (overwritting Kernel.load)
  *         """
  */
@@ -3206,9 +3625,9 @@ static PyObject *__pyx_pf_9macrospin_7kernels_11BasicKernel_load(struct __pyx_ob
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
-  __Pyx_AddTraceback("macrospin.kernels.BasicKernel.load", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
+  __Pyx_AddTraceback("macrospin.kernels.BasicKernel._load", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3216,40 +3635,88 @@ static PyObject *__pyx_pf_9macrospin_7kernels_11BasicKernel_load(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "macrospin/kernels.pyx":112
- *         (<c_kernels.BasicKernel *>self.kernel).Nd = make_float3(self.parameters['Nd'])
+/* "macrospin/kernels.pyx":160
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):             # <<<<<<<<<<<<<<
- *         (<c_kernels.BasicKernel *>self.kernel).evolve(moments_ptr, steps, internal_steps)
+ * 
+ *     cdef float3 field(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         return self.hext + field.demagnetization(m, self.Nd)
+ * 
  */
 
-static PyObject *__pyx_f_9macrospin_7kernels_11BasicKernel__evolve(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self, float *__pyx_v_moments_ptr, long __pyx_v_steps, long __pyx_v_internal_steps) {
-  PyObject *__pyx_r = NULL;
+static float3 __pyx_f_9macrospin_7kernels_11BasicKernel_field(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self, CYTHON_UNUSED float __pyx_v_t, float3 __pyx_v_m) {
+  float3 __pyx_r;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("_evolve", 0);
+  __Pyx_RefNannySetupContext("field", 0);
 
-  /* "macrospin/kernels.pyx":113
+  /* "macrospin/kernels.pyx":161
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):
- *         (<c_kernels.BasicKernel *>self.kernel).evolve(moments_ptr, steps, internal_steps)             # <<<<<<<<<<<<<<
+ *     cdef float3 field(self, float t, float3 m):
+ *         return self.hext + field.demagnetization(m, self.Nd)             # <<<<<<<<<<<<<<
+ * 
+ * 
  */
-  ((BasicKernel *)__pyx_v_self->__pyx_base.kernel)->evolve(__pyx_v_moments_ptr, __pyx_v_steps, __pyx_v_internal_steps);
+  __pyx_r = (__pyx_v_self->hext + __pyx_f_9macrospin_5field_demagnetization(__pyx_v_m, __pyx_v_self->Nd));
+  goto __pyx_L0;
 
-  /* "macrospin/kernels.pyx":112
- *         (<c_kernels.BasicKernel *>self.kernel).Nd = make_float3(self.parameters['Nd'])
+  /* "macrospin/kernels.pyx":160
  * 
- *     cdef _evolve(self, float* moments_ptr, long steps, long internal_steps):             # <<<<<<<<<<<<<<
- *         (<c_kernels.BasicKernel *>self.kernel).evolve(moments_ptr, steps, internal_steps)
+ * 
+ *     cdef float3 field(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         return self.hext + field.demagnetization(m, self.Nd)
+ * 
  */
 
   /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  __Pyx_XGIVEREF(__pyx_r);
+  __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "macrospin/cpp/c_types.pxd":33
+/* "macrospin/kernels.pyx":164
+ * 
+ * 
+ *     cdef float3 torque(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         cdef float3 heff = self.field(t, m)
+ *         return torque.landau_lifshitz(m, heff, self.alpha)
+ */
+
+static float3 __pyx_f_9macrospin_7kernels_11BasicKernel_torque(struct __pyx_obj_9macrospin_7kernels_BasicKernel *__pyx_v_self, float __pyx_v_t, float3 __pyx_v_m) {
+  float3 __pyx_v_heff;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("torque", 0);
+
+  /* "macrospin/kernels.pyx":165
+ * 
+ *     cdef float3 torque(self, float t, float3 m):
+ *         cdef float3 heff = self.field(t, m)             # <<<<<<<<<<<<<<
+ *         return torque.landau_lifshitz(m, heff, self.alpha)
+ */
+  __pyx_v_heff = ((struct __pyx_vtabstruct_9macrospin_7kernels_BasicKernel *)__pyx_v_self->__pyx_base.__pyx_vtab)->__pyx_base.field(((struct __pyx_obj_9macrospin_7kernels_Kernel *)__pyx_v_self), __pyx_v_t, __pyx_v_m);
+
+  /* "macrospin/kernels.pyx":166
+ *     cdef float3 torque(self, float t, float3 m):
+ *         cdef float3 heff = self.field(t, m)
+ *         return torque.landau_lifshitz(m, heff, self.alpha)             # <<<<<<<<<<<<<<
+ */
+  __pyx_r = __pyx_f_9macrospin_6torque_landau_lifshitz(__pyx_v_m, __pyx_v_heff, __pyx_v_self->alpha);
+  goto __pyx_L0;
+
+  /* "macrospin/kernels.pyx":164
+ * 
+ * 
+ *     cdef float3 torque(self, float t, float3 m):             # <<<<<<<<<<<<<<
+ *         cdef float3 heff = self.field(t, m)
+ *         return torque.landau_lifshitz(m, heff, self.alpha)
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "macrospin/types.pxd":33
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cdef inline float3 make_float3(float[::1] l):             # <<<<<<<<<<<<<<
@@ -3257,7 +3724,7 @@ static PyObject *__pyx_f_9macrospin_7kernels_11BasicKernel__evolve(struct __pyx_
  *     r.x, r.y, r.z = l[0], l[1], l[2]
  */
 
-static CYTHON_INLINE float3 __pyx_f_9macrospin_3cpp_7c_types_make_float3(__Pyx_memviewslice __pyx_v_l) {
+static CYTHON_INLINE float3 __pyx_f_9macrospin_5types_make_float3(__Pyx_memviewslice __pyx_v_l) {
   float3 __pyx_v_r;
   float3 __pyx_r;
   __Pyx_RefNannyDeclarations
@@ -3273,7 +3740,7 @@ static CYTHON_INLINE float3 __pyx_f_9macrospin_3cpp_7c_types_make_float3(__Pyx_m
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("make_float3", 0);
 
-  /* "macrospin/cpp/c_types.pxd":35
+  /* "macrospin/types.pxd":35
  * cdef inline float3 make_float3(float[::1] l):
  *     cdef float3 r
  *     r.x, r.y, r.z = l[0], l[1], l[2]             # <<<<<<<<<<<<<<
@@ -3316,7 +3783,7 @@ static CYTHON_INLINE float3 __pyx_f_9macrospin_3cpp_7c_types_make_float3(__Pyx_m
   __pyx_v_r.y = __pyx_t_5;
   __pyx_v_r.z = __pyx_t_7;
 
-  /* "macrospin/cpp/c_types.pxd":36
+  /* "macrospin/types.pxd":36
  *     cdef float3 r
  *     r.x, r.y, r.z = l[0], l[1], l[2]
  *     return r             # <<<<<<<<<<<<<<
@@ -3324,7 +3791,7 @@ static CYTHON_INLINE float3 __pyx_f_9macrospin_3cpp_7c_types_make_float3(__Pyx_m
   __pyx_r = __pyx_v_r;
   goto __pyx_L0;
 
-  /* "macrospin/cpp/c_types.pxd":33
+  /* "macrospin/types.pxd":33
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cdef inline float3 make_float3(float[::1] l):             # <<<<<<<<<<<<<<
@@ -3334,10 +3801,691 @@ static CYTHON_INLINE float3 __pyx_f_9macrospin_3cpp_7c_types_make_float3(__Pyx_m
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("macrospin.cpp.c_types.make_float3", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("macrospin.types.make_float3", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
+}
+
+/* "energy.pxd":4
+ * 
+ * 
+ * cdef inline float zeeman(float3 m, float3 h):             # <<<<<<<<<<<<<<
+ *     """ Returns the Zeeman energy from a field """
+ *     return -m.dot(h)
+ */
+
+static CYTHON_INLINE float __pyx_f_9macrospin_6energy_zeeman(float3 __pyx_v_m, float3 __pyx_v_h) {
+  float __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("zeeman", 0);
+
+  /* "energy.pxd":6
+ * cdef inline float zeeman(float3 m, float3 h):
+ *     """ Returns the Zeeman energy from a field """
+ *     return -m.dot(h)             # <<<<<<<<<<<<<<
+ */
+  __pyx_r = (-__pyx_v_m.dot(__pyx_v_h));
+  goto __pyx_L0;
+
+  /* "energy.pxd":4
+ * 
+ * 
+ * cdef inline float zeeman(float3 m, float3 h):             # <<<<<<<<<<<<<<
+ *     """ Returns the Zeeman energy from a field """
+ *     return -m.dot(h)
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_6torque_landau_lifshitz(float3 __pyx_v_m, float3 __pyx_v_heff, float __pyx_v_alpha) {
+  float3 __pyx_v_hxm;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("landau_lifshitz", 0);
+
+  /* "torque.pxd":12
+ * 
+ *     """
+ *     cdef float3 hxm = heff.cross(m)             # <<<<<<<<<<<<<<
+ *     return hxm + alpha*m.cross(hxm)
+ * 
+ */
+  __pyx_v_hxm = __pyx_v_heff.cross(__pyx_v_m);
+
+  /* "torque.pxd":13
+ *     """
+ *     cdef float3 hxm = heff.cross(m)
+ *     return hxm + alpha*m.cross(hxm)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = (__pyx_v_hxm + (__pyx_v_alpha * __pyx_v_m.cross(__pyx_v_hxm)));
+  goto __pyx_L0;
+
+  /* "torque.pxd":4
+ * 
+ * 
+ * cdef inline float3 landau_lifshitz(float3 m, float3 heff, float alpha):             # <<<<<<<<<<<<<<
+ *     """ Returns the Landau-Lifshitz torque
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "torque.pxd":16
+ * 
+ * 
+ * cdef inline float3 slonczewski(float3 m, float3 Jc, float stt):             # <<<<<<<<<<<<<<
+ *     """ Returns the Slonczewski spin-transfer torque
+ * 
+ */
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_6torque_slonczewski(float3 __pyx_v_m, float3 __pyx_v_Jc, float __pyx_v_stt) {
+  float3 __pyx_v_p;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("slonczewski", 0);
+
+  /* "torque.pxd":24
+ * 
+ *     """
+ *     cdef float3 p = -Jc*stt             # <<<<<<<<<<<<<<
+ *     return m.cross(p.cross(m))
+ */
+  __pyx_v_p = ((-__pyx_v_Jc) * __pyx_v_stt);
+
+  /* "torque.pxd":25
+ *     """
+ *     cdef float3 p = -Jc*stt
+ *     return m.cross(p.cross(m))             # <<<<<<<<<<<<<<
+ */
+  __pyx_r = __pyx_v_m.cross(__pyx_v_p.cross(__pyx_v_m));
+  goto __pyx_L0;
+
+  /* "torque.pxd":16
+ * 
+ * 
+ * cdef inline float3 slonczewski(float3 m, float3 Jc, float stt):             # <<<<<<<<<<<<<<
+ *     """ Returns the Slonczewski spin-transfer torque
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "field.pxd":4
+ * 
+ * 
+ * cdef inline float3 demagnetization(float3 m, float3 Nd):             # <<<<<<<<<<<<<<
+ *     """ Returns the demagnetization field based on the diagonal
+ *     elements of the demagnetization tensor
+ */
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_5field_demagnetization(float3 __pyx_v_m, float3 __pyx_v_Nd) {
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("demagnetization", 0);
+
+  /* "field.pxd":12
+ * 
+ *     """
+ *     return -m*Nd             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = ((-__pyx_v_m) * __pyx_v_Nd);
+  goto __pyx_L0;
+
+  /* "field.pxd":4
+ * 
+ * 
+ * cdef inline float3 demagnetization(float3 m, float3 Nd):             # <<<<<<<<<<<<<<
+ *     """ Returns the demagnetization field based on the diagonal
+ *     elements of the demagnetization tensor
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "field.pxd":15
+ * 
+ * 
+ * cdef inline float3 uniaxial_anisotropy(float3 m, float3 u, float hu1, float hu2):             # <<<<<<<<<<<<<<
+ *     """ Returns the uniaxial anisotropy field
+ * 
+ */
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_5field_uniaxial_anisotropy(float3 __pyx_v_m, float3 __pyx_v_u, float __pyx_v_hu1, float __pyx_v_hu2) {
+  float __pyx_v_m_u;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("uniaxial_anisotropy", 0);
+
+  /* "field.pxd":24
+ * 
+ *     """
+ *     cdef float m_u = m.dot(u)             # <<<<<<<<<<<<<<
+ *     return u*(m_u*hu1) + u*(m_u*m_u*m_u*hu2)
+ * 
+ */
+  __pyx_v_m_u = __pyx_v_m.dot(__pyx_v_u);
+
+  /* "field.pxd":25
+ *     """
+ *     cdef float m_u = m.dot(u)
+ *     return u*(m_u*hu1) + u*(m_u*m_u*m_u*hu2)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_r = ((__pyx_v_u * (__pyx_v_m_u * __pyx_v_hu1)) + (__pyx_v_u * (((__pyx_v_m_u * __pyx_v_m_u) * __pyx_v_m_u) * __pyx_v_hu2)));
+  goto __pyx_L0;
+
+  /* "field.pxd":15
+ * 
+ * 
+ * cdef inline float3 uniaxial_anisotropy(float3 m, float3 u, float hu1, float hu2):             # <<<<<<<<<<<<<<
+ *     """ Returns the uniaxial anisotropy field
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "field.pxd":28
+ * 
+ * 
+ * cdef inline float3 cubic_anisotropy(float3 m, float3 c1, float3 c2, float3 c3,             # <<<<<<<<<<<<<<
+ *     float hc1, float hc2):
+ *     """ Returns the cubic anisotropy field
+ */
+
+static CYTHON_INLINE float3 __pyx_f_9macrospin_5field_cubic_anisotropy(float3 __pyx_v_m, float3 __pyx_v_c1, float3 __pyx_v_c2, float3 __pyx_v_c3, float __pyx_v_hc1, float __pyx_v_hc2) {
+  float __pyx_v_m_c1;
+  float __pyx_v_m_c2;
+  float __pyx_v_m_c3;
+  float3 __pyx_v_h;
+  float3 __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("cubic_anisotropy", 0);
+
+  /* "field.pxd":39
+ *     """
+ *     cdef:
+ *         float m_c1 = m.dot(c1)             # <<<<<<<<<<<<<<
+ *         float m_c2 = m.dot(c2)
+ *         float m_c3 = m.dot(c3)
+ */
+  __pyx_v_m_c1 = __pyx_v_m.dot(__pyx_v_c1);
+
+  /* "field.pxd":40
+ *     cdef:
+ *         float m_c1 = m.dot(c1)
+ *         float m_c2 = m.dot(c2)             # <<<<<<<<<<<<<<
+ *         float m_c3 = m.dot(c3)
+ *         float3 h
+ */
+  __pyx_v_m_c2 = __pyx_v_m.dot(__pyx_v_c2);
+
+  /* "field.pxd":41
+ *         float m_c1 = m.dot(c1)
+ *         float m_c2 = m.dot(c2)
+ *         float m_c3 = m.dot(c3)             # <<<<<<<<<<<<<<
+ *         float3 h
+ *     h =  hc1*(m_c2*m_c2 + m_c3*m_c3)*(m_c1*c1)
+ */
+  __pyx_v_m_c3 = __pyx_v_m.dot(__pyx_v_c3);
+
+  /* "field.pxd":43
+ *         float m_c3 = m.dot(c3)
+ *         float3 h
+ *     h =  hc1*(m_c2*m_c2 + m_c3*m_c3)*(m_c1*c1)             # <<<<<<<<<<<<<<
+ *     h += hc1*(m_c1*m_c1 + m_c3*m_c3)*(m_c2*c2)
+ *     h += hc1*(m_c1*m_c1 + m_c2*m_c2)*(m_c3*c3)
+ */
+  __pyx_v_h = ((__pyx_v_hc1 * ((__pyx_v_m_c2 * __pyx_v_m_c2) + (__pyx_v_m_c3 * __pyx_v_m_c3))) * (__pyx_v_m_c1 * __pyx_v_c1));
+
+  /* "field.pxd":44
+ *         float3 h
+ *     h =  hc1*(m_c2*m_c2 + m_c3*m_c3)*(m_c1*c1)
+ *     h += hc1*(m_c1*m_c1 + m_c3*m_c3)*(m_c2*c2)             # <<<<<<<<<<<<<<
+ *     h += hc1*(m_c1*m_c1 + m_c2*m_c2)*(m_c3*c3)
+ * 
+ */
+  __pyx_v_h += ((__pyx_v_hc1 * ((__pyx_v_m_c1 * __pyx_v_m_c1) + (__pyx_v_m_c3 * __pyx_v_m_c3))) * (__pyx_v_m_c2 * __pyx_v_c2));
+
+  /* "field.pxd":45
+ *     h =  hc1*(m_c2*m_c2 + m_c3*m_c3)*(m_c1*c1)
+ *     h += hc1*(m_c1*m_c1 + m_c3*m_c3)*(m_c2*c2)
+ *     h += hc1*(m_c1*m_c1 + m_c2*m_c2)*(m_c3*c3)             # <<<<<<<<<<<<<<
+ * 
+ *     h += hc2*(m_c2*m_c2 * m_c3*m_c3)*(m_c1*c1)
+ */
+  __pyx_v_h += ((__pyx_v_hc1 * ((__pyx_v_m_c1 * __pyx_v_m_c1) + (__pyx_v_m_c2 * __pyx_v_m_c2))) * (__pyx_v_m_c3 * __pyx_v_c3));
+
+  /* "field.pxd":47
+ *     h += hc1*(m_c1*m_c1 + m_c2*m_c2)*(m_c3*c3)
+ * 
+ *     h += hc2*(m_c2*m_c2 * m_c3*m_c3)*(m_c1*c1)             # <<<<<<<<<<<<<<
+ *     h += hc2*(m_c1*m_c1 * m_c3*m_c3)*(m_c2*c2)
+ *     h += hc2*(m_c1*m_c1 * m_c2*m_c2)*(m_c3*c3)
+ */
+  __pyx_v_h += ((__pyx_v_hc2 * (((__pyx_v_m_c2 * __pyx_v_m_c2) * __pyx_v_m_c3) * __pyx_v_m_c3)) * (__pyx_v_m_c1 * __pyx_v_c1));
+
+  /* "field.pxd":48
+ * 
+ *     h += hc2*(m_c2*m_c2 * m_c3*m_c3)*(m_c1*c1)
+ *     h += hc2*(m_c1*m_c1 * m_c3*m_c3)*(m_c2*c2)             # <<<<<<<<<<<<<<
+ *     h += hc2*(m_c1*m_c1 * m_c2*m_c2)*(m_c3*c3)
+ *     return h
+ */
+  __pyx_v_h += ((__pyx_v_hc2 * (((__pyx_v_m_c1 * __pyx_v_m_c1) * __pyx_v_m_c3) * __pyx_v_m_c3)) * (__pyx_v_m_c2 * __pyx_v_c2));
+
+  /* "field.pxd":49
+ *     h += hc2*(m_c2*m_c2 * m_c3*m_c3)*(m_c1*c1)
+ *     h += hc2*(m_c1*m_c1 * m_c3*m_c3)*(m_c2*c2)
+ *     h += hc2*(m_c1*m_c1 * m_c2*m_c2)*(m_c3*c3)             # <<<<<<<<<<<<<<
+ *     return h
+ */
+  __pyx_v_h += ((__pyx_v_hc2 * (((__pyx_v_m_c1 * __pyx_v_m_c1) * __pyx_v_m_c2) * __pyx_v_m_c2)) * (__pyx_v_m_c3 * __pyx_v_c3));
+
+  /* "field.pxd":50
+ *     h += hc2*(m_c1*m_c1 * m_c3*m_c3)*(m_c2*c2)
+ *     h += hc2*(m_c1*m_c1 * m_c2*m_c2)*(m_c3*c3)
+ *     return h             # <<<<<<<<<<<<<<
+ */
+  __pyx_r = __pyx_v_h;
+  goto __pyx_L0;
+
+  /* "field.pxd":28
+ * 
+ * 
+ * cdef inline float3 cubic_anisotropy(float3 m, float3 c1, float3 c2, float3 c3,             # <<<<<<<<<<<<<<
+ *     float hc1, float hc2):
+ *     """ Returns the cubic anisotropy field
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "solvers.pxd":5
+ * 
+ * 
+ * cdef inline void euler_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """Takes one step using the Euler method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_euler_step(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_kernel) {
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("euler_step", 0);
+
+  /* "solvers.pxd":7
+ * cdef inline void euler_step(Kernel kernel):
+ *     """Takes one step using the Euler method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt             # <<<<<<<<<<<<<<
+ * 
+ *     kernel.current.torque = kernel.torque(kernel.previous.t, kernel.previous.m)
+ */
+  __pyx_v_kernel->current.t = (__pyx_v_kernel->previous.t + __pyx_v_kernel->dt);
+
+  /* "solvers.pxd":9
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ * 
+ *     kernel.current.torque = kernel.torque(kernel.previous.t, kernel.previous.m)             # <<<<<<<<<<<<<<
+ *     kernel.current.m = kernel.previous.m + kernel.dt*kernel.current.torque
+ *     kernel.current.m.normalize()
+ */
+  __pyx_v_kernel->current.torque = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, __pyx_v_kernel->previous.t, __pyx_v_kernel->previous.m);
+
+  /* "solvers.pxd":10
+ * 
+ *     kernel.current.torque = kernel.torque(kernel.previous.t, kernel.previous.m)
+ *     kernel.current.m = kernel.previous.m + kernel.dt*kernel.current.torque             # <<<<<<<<<<<<<<
+ *     kernel.current.m.normalize()
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ */
+  __pyx_v_kernel->current.m = (__pyx_v_kernel->previous.m + (__pyx_v_kernel->dt * __pyx_v_kernel->current.torque));
+
+  /* "solvers.pxd":11
+ *     kernel.current.torque = kernel.torque(kernel.previous.t, kernel.previous.m)
+ *     kernel.current.m = kernel.previous.m + kernel.dt*kernel.current.torque
+ *     kernel.current.m.normalize()             # <<<<<<<<<<<<<<
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ * 
+ */
+  __pyx_v_kernel->current.m.normalize();
+
+  /* "solvers.pxd":12
+ *     kernel.current.m = kernel.previous.m + kernel.dt*kernel.current.torque
+ *     kernel.current.m.normalize()
+ *     kernel.current.eps = 0.0 # TODO: Include error             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_v_kernel->current.eps = 0.0;
+
+  /* "solvers.pxd":5
+ * 
+ * 
+ * cdef inline void euler_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """Takes one step using the Euler method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "solvers.pxd":15
+ * 
+ * 
+ * cdef inline void huen_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """ Takes one step using Huen's method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_huen_step(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_kernel) {
+  float3 __pyx_v_k1;
+  float3 __pyx_v_k2;
+  __Pyx_RefNannyDeclarations
+  float3 __pyx_t_1;
+  __Pyx_RefNannySetupContext("huen_step", 0);
+
+  /* "solvers.pxd":17
+ * cdef inline void huen_step(Kernel kernel):
+ *     """ Takes one step using Huen's method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt             # <<<<<<<<<<<<<<
+ * 
+ *     cdef:
+ */
+  __pyx_v_kernel->current.t = (__pyx_v_kernel->previous.t + __pyx_v_kernel->dt);
+
+  /* "solvers.pxd":20
+ * 
+ *     cdef:
+ *         float3 k1 = kernel.previous.torque             # <<<<<<<<<<<<<<
+ *         float3 k2 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k1)
+ * 
+ */
+  __pyx_t_1 = __pyx_v_kernel->previous.torque;
+  __pyx_v_k1 = __pyx_t_1;
+
+  /* "solvers.pxd":21
+ *     cdef:
+ *         float3 k1 = kernel.previous.torque
+ *         float3 k2 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k1)             # <<<<<<<<<<<<<<
+ * 
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + k2)/2.0
+ */
+  __pyx_v_k2 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, __pyx_v_kernel->current.t, (__pyx_v_kernel->previous.m + (__pyx_v_kernel->dt * __pyx_v_k1)));
+
+  /* "solvers.pxd":23
+ *         float3 k2 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k1)
+ * 
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + k2)/2.0             # <<<<<<<<<<<<<<
+ *     kernel.current.m.normalize()
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ */
+  __pyx_v_kernel->current.m = (__pyx_v_kernel->previous.m + ((__pyx_v_kernel->dt * (__pyx_v_k1 + __pyx_v_k2)) / 2.0));
+
+  /* "solvers.pxd":24
+ * 
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + k2)/2.0
+ *     kernel.current.m.normalize()             # <<<<<<<<<<<<<<
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ * 
+ */
+  __pyx_v_kernel->current.m.normalize();
+
+  /* "solvers.pxd":25
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + k2)/2.0
+ *     kernel.current.m.normalize()
+ *     kernel.current.eps = 0.0 # TODO: Include error             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_v_kernel->current.eps = 0.0;
+
+  /* "solvers.pxd":15
+ * 
+ * 
+ * cdef inline void huen_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """ Takes one step using Huen's method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "solvers.pxd":28
+ * 
+ * 
+ * cdef inline void rk23_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """ Takes one step using the Bogacki-Shampine method (Runga-Kutta RK23) """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_rk23_step(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_kernel) {
+  float3 __pyx_v_k1;
+  float3 __pyx_v_k2;
+  float3 __pyx_v_k3;
+  __Pyx_RefNannyDeclarations
+  float3 __pyx_t_1;
+  __Pyx_RefNannySetupContext("rk23_step", 0);
+
+  /* "solvers.pxd":30
+ * cdef inline void rk23_step(Kernel kernel):
+ *     """ Takes one step using the Bogacki-Shampine method (Runga-Kutta RK23) """
+ *     kernel.current.t = kernel.previous.t + kernel.dt             # <<<<<<<<<<<<<<
+ * 
+ *     cdef:
+ */
+  __pyx_v_kernel->current.t = (__pyx_v_kernel->previous.t + __pyx_v_kernel->dt);
+
+  /* "solvers.pxd":33
+ * 
+ *     cdef:
+ *         float3 k1 = kernel.previous.torque             # <<<<<<<<<<<<<<
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)
+ *         float3 k3 = kernel.torque(kernel.previous.t + 3.0*kernel.dt/2.0, kernel.previous.m + 3.0*kernel.dt*k2/2.0)
+ */
+  __pyx_t_1 = __pyx_v_kernel->previous.torque;
+  __pyx_v_k1 = __pyx_t_1;
+
+  /* "solvers.pxd":34
+ *     cdef:
+ *         float3 k1 = kernel.previous.torque
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)             # <<<<<<<<<<<<<<
+ *         float3 k3 = kernel.torque(kernel.previous.t + 3.0*kernel.dt/2.0, kernel.previous.m + 3.0*kernel.dt*k2/2.0)
+ * 
+ */
+  __pyx_v_k2 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, (__pyx_v_kernel->previous.t + (__pyx_v_kernel->dt / 2.0)), (__pyx_v_kernel->previous.m + ((__pyx_v_kernel->dt * __pyx_v_k1) / 2.0)));
+
+  /* "solvers.pxd":35
+ *         float3 k1 = kernel.previous.torque
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)
+ *         float3 k3 = kernel.torque(kernel.previous.t + 3.0*kernel.dt/2.0, kernel.previous.m + 3.0*kernel.dt*k2/2.0)             # <<<<<<<<<<<<<<
+ * 
+ *     kernel.current.m = kernel.previous.m + 2.0*kernel.dt*k1/9.0 + kernel.dt*k2/3.0 + 4*kernel.dt*k3/9.0
+ */
+  __pyx_v_k3 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, (__pyx_v_kernel->previous.t + ((3.0 * __pyx_v_kernel->dt) / 2.0)), (__pyx_v_kernel->previous.m + (((3.0 * __pyx_v_kernel->dt) * __pyx_v_k2) / 2.0)));
+
+  /* "solvers.pxd":37
+ *         float3 k3 = kernel.torque(kernel.previous.t + 3.0*kernel.dt/2.0, kernel.previous.m + 3.0*kernel.dt*k2/2.0)
+ * 
+ *     kernel.current.m = kernel.previous.m + 2.0*kernel.dt*k1/9.0 + kernel.dt*k2/3.0 + 4*kernel.dt*k3/9.0             # <<<<<<<<<<<<<<
+ *     kernel.current.m.normalize()
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)
+ */
+  __pyx_v_kernel->current.m = (((__pyx_v_kernel->previous.m + (((2.0 * __pyx_v_kernel->dt) * __pyx_v_k1) / 9.0)) + ((__pyx_v_kernel->dt * __pyx_v_k2) / 3.0)) + (((4.0 * __pyx_v_kernel->dt) * __pyx_v_k3) / 9.0));
+
+  /* "solvers.pxd":38
+ * 
+ *     kernel.current.m = kernel.previous.m + 2.0*kernel.dt*k1/9.0 + kernel.dt*k2/3.0 + 4*kernel.dt*k3/9.0
+ *     kernel.current.m.normalize()             # <<<<<<<<<<<<<<
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ */
+  __pyx_v_kernel->current.m.normalize();
+
+  /* "solvers.pxd":39
+ *     kernel.current.m = kernel.previous.m + 2.0*kernel.dt*k1/9.0 + kernel.dt*k2/3.0 + 4*kernel.dt*k3/9.0
+ *     kernel.current.m.normalize()
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)             # <<<<<<<<<<<<<<
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ * 
+ */
+  __pyx_v_kernel->current.torque = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, __pyx_v_kernel->current.t, __pyx_v_kernel->current.m);
+
+  /* "solvers.pxd":40
+ *     kernel.current.m.normalize()
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)
+ *     kernel.current.eps = 0.0 # TODO: Include error             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_v_kernel->current.eps = 0.0;
+
+  /* "solvers.pxd":28
+ * 
+ * 
+ * cdef inline void rk23_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """ Takes one step using the Bogacki-Shampine method (Runga-Kutta RK23) """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "solvers.pxd":43
+ * 
+ * 
+ * cdef inline void rk4_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """ Takes one step using the Classic 4th order Runga-Kutta method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+static CYTHON_INLINE void __pyx_f_9macrospin_7solvers_rk4_step(struct __pyx_obj_9macrospin_7kernels_Kernel *__pyx_v_kernel) {
+  float3 __pyx_v_k1;
+  float3 __pyx_v_k2;
+  float3 __pyx_v_k3;
+  float3 __pyx_v_k4;
+  __Pyx_RefNannyDeclarations
+  float3 __pyx_t_1;
+  __Pyx_RefNannySetupContext("rk4_step", 0);
+
+  /* "solvers.pxd":45
+ * cdef inline void rk4_step(Kernel kernel):
+ *     """ Takes one step using the Classic 4th order Runga-Kutta method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt             # <<<<<<<<<<<<<<
+ * 
+ *     cdef:
+ */
+  __pyx_v_kernel->current.t = (__pyx_v_kernel->previous.t + __pyx_v_kernel->dt);
+
+  /* "solvers.pxd":48
+ * 
+ *     cdef:
+ *         float3 k1 = kernel.previous.torque             # <<<<<<<<<<<<<<
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)
+ *         float3 k3 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k2/2.0)
+ */
+  __pyx_t_1 = __pyx_v_kernel->previous.torque;
+  __pyx_v_k1 = __pyx_t_1;
+
+  /* "solvers.pxd":49
+ *     cdef:
+ *         float3 k1 = kernel.previous.torque
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)             # <<<<<<<<<<<<<<
+ *         float3 k3 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k2/2.0)
+ *         float3 k4 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k3)
+ */
+  __pyx_v_k2 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, (__pyx_v_kernel->previous.t + (__pyx_v_kernel->dt / 2.0)), (__pyx_v_kernel->previous.m + ((__pyx_v_kernel->dt * __pyx_v_k1) / 2.0)));
+
+  /* "solvers.pxd":50
+ *         float3 k1 = kernel.previous.torque
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)
+ *         float3 k3 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k2/2.0)             # <<<<<<<<<<<<<<
+ *         float3 k4 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k3)
+ * 
+ */
+  __pyx_v_k3 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, (__pyx_v_kernel->previous.t + (__pyx_v_kernel->dt / 2.0)), (__pyx_v_kernel->previous.m + ((__pyx_v_kernel->dt * __pyx_v_k2) / 2.0)));
+
+  /* "solvers.pxd":51
+ *         float3 k2 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k1/2.0)
+ *         float3 k3 = kernel.torque(kernel.previous.t + kernel.dt/2.0, kernel.previous.m + kernel.dt*k2/2.0)
+ *         float3 k4 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k3)             # <<<<<<<<<<<<<<
+ * 
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + 2.0*k2 + 2.0*k3 + k4)/6.0
+ */
+  __pyx_v_k4 = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, __pyx_v_kernel->current.t, (__pyx_v_kernel->previous.m + (__pyx_v_kernel->dt * __pyx_v_k3)));
+
+  /* "solvers.pxd":53
+ *         float3 k4 = kernel.torque(kernel.current.t, kernel.previous.m + kernel.dt*k3)
+ * 
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + 2.0*k2 + 2.0*k3 + k4)/6.0             # <<<<<<<<<<<<<<
+ *     kernel.current.m.normalize()
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)
+ */
+  __pyx_v_kernel->current.m = (__pyx_v_kernel->previous.m + ((__pyx_v_kernel->dt * (((__pyx_v_k1 + (2.0 * __pyx_v_k2)) + (2.0 * __pyx_v_k3)) + __pyx_v_k4)) / 6.0));
+
+  /* "solvers.pxd":54
+ * 
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + 2.0*k2 + 2.0*k3 + k4)/6.0
+ *     kernel.current.m.normalize()             # <<<<<<<<<<<<<<
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ */
+  __pyx_v_kernel->current.m.normalize();
+
+  /* "solvers.pxd":55
+ *     kernel.current.m = kernel.previous.m + kernel.dt*(k1 + 2.0*k2 + 2.0*k3 + k4)/6.0
+ *     kernel.current.m.normalize()
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)             # <<<<<<<<<<<<<<
+ *     kernel.current.eps = 0.0 # TODO: Include error
+ */
+  __pyx_v_kernel->current.torque = ((struct __pyx_vtabstruct_9macrospin_7kernels_Kernel *)__pyx_v_kernel->__pyx_vtab)->torque(__pyx_v_kernel, __pyx_v_kernel->current.t, __pyx_v_kernel->current.m);
+
+  /* "solvers.pxd":56
+ *     kernel.current.m.normalize()
+ *     kernel.current.torque = kernel.torque(kernel.current.t, kernel.current.m)
+ *     kernel.current.eps = 0.0 # TODO: Include error             # <<<<<<<<<<<<<<
+ */
+  __pyx_v_kernel->current.eps = 0.0;
+
+  /* "solvers.pxd":43
+ * 
+ * 
+ * cdef inline void rk4_step(Kernel kernel):             # <<<<<<<<<<<<<<
+ *     """ Takes one step using the Classic 4th order Runga-Kutta method """
+ *     kernel.current.t = kernel.previous.t + kernel.dt
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
 }
 
 /* "../../../.venv/local/lib/python2.7/site-packages/Cython/Includes/numpy/__init__.pxd":194
@@ -16022,13 +17170,14 @@ static int __pyx_tp_clear_9macrospin_7kernels_Kernel(PyObject *o) {
 }
 
 static PyMethodDef __pyx_methods_9macrospin_7kernels_Kernel[] = {
-  {"load", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_3load, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_2load},
-  {"run", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_5run, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9macrospin_7kernels_6Kernel_4run},
-  {"times", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_7times, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9macrospin_7kernels_6Kernel_6times},
-  {"m", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_9m, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_8m},
-  {"t", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_11t, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_10t},
-  {"t_sec", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_13t_sec, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_12t_sec},
-  {"reset", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_15reset, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_14reset},
+  {"set_step_func", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_3set_step_func, METH_O, 0},
+  {"_load", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_5_load, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_4_load},
+  {"run", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_7run, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9macrospin_7kernels_6Kernel_6run},
+  {"times", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_9times, METH_VARARGS|METH_KEYWORDS, __pyx_doc_9macrospin_7kernels_6Kernel_8times},
+  {"m", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_11m, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_10m},
+  {"t", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_13t, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_12t},
+  {"t_sec", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_15t_sec, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_14t_sec},
+  {"reset", (PyCFunction)__pyx_pw_9macrospin_7kernels_6Kernel_17reset, METH_NOARGS, __pyx_doc_9macrospin_7kernels_6Kernel_16reset},
   {0, 0, 0, 0}
 };
 
@@ -16096,11 +17245,13 @@ static PyObject *__pyx_tp_new_9macrospin_7kernels_BasicKernel(PyTypeObject *t, P
   if (unlikely(!o)) return 0;
   p = ((struct __pyx_obj_9macrospin_7kernels_BasicKernel *)o);
   p->__pyx_base.__pyx_vtab = (struct __pyx_vtabstruct_9macrospin_7kernels_Kernel*)__pyx_vtabptr_9macrospin_7kernels_BasicKernel;
+  new((void*)&(p->hext)) float3();
+  new((void*)&(p->Nd)) float3();
   return o;
 }
 
 static PyMethodDef __pyx_methods_9macrospin_7kernels_BasicKernel[] = {
-  {"load", (PyCFunction)__pyx_pw_9macrospin_7kernels_11BasicKernel_1load, METH_NOARGS, __pyx_doc_9macrospin_7kernels_11BasicKernel_load},
+  {"_load", (PyCFunction)__pyx_pw_9macrospin_7kernels_11BasicKernel_1_load, METH_NOARGS, __pyx_doc_9macrospin_7kernels_11BasicKernel__load},
   {0, 0, 0, 0}
 };
 
@@ -16844,9 +17995,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Cannot_index_with_type_s, __pyx_k_Cannot_index_with_type_s, sizeof(__pyx_k_Cannot_index_with_type_s), 0, 0, 1, 0},
   {&__pyx_n_s_Ellipsis, __pyx_k_Ellipsis, sizeof(__pyx_k_Ellipsis), 0, 0, 1, 1},
   {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
+  {&__pyx_n_s_Euler, __pyx_k_Euler, sizeof(__pyx_k_Euler), 0, 0, 1, 1},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_n_s_Hext, __pyx_k_Hext, sizeof(__pyx_k_Hext), 0, 0, 1, 1},
+  {&__pyx_n_s_Huen, __pyx_k_Huen, sizeof(__pyx_k_Huen), 0, 0, 1, 1},
   {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
   {&__pyx_kp_s_Indirect_dimensions_not_supporte, __pyx_k_Indirect_dimensions_not_supporte, sizeof(__pyx_k_Indirect_dimensions_not_supporte), 0, 0, 1, 0},
   {&__pyx_kp_s_Invalid_mode_expected_c_or_fortr, __pyx_k_Invalid_mode_expected_c_or_fortr, sizeof(__pyx_k_Invalid_mode_expected_c_or_fortr), 0, 0, 1, 0},
@@ -16858,6 +18011,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_n_b_O, __pyx_k_O, sizeof(__pyx_k_O), 0, 0, 0, 1},
   {&__pyx_kp_s_Out_of_bounds_on_buffer_access_a, __pyx_k_Out_of_bounds_on_buffer_access_a, sizeof(__pyx_k_Out_of_bounds_on_buffer_access_a), 0, 0, 1, 0},
+  {&__pyx_n_s_RK23, __pyx_k_RK23, sizeof(__pyx_k_RK23), 0, 0, 1, 1},
+  {&__pyx_n_s_RK4, __pyx_k_RK4, sizeof(__pyx_k_RK4), 0, 0, 1, 1},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
@@ -16911,6 +18066,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_reset, __pyx_k_reset, sizeof(__pyx_k_reset), 0, 0, 1, 1},
+  {&__pyx_n_s_set_step_func, __pyx_k_set_step_func, sizeof(__pyx_k_set_step_func), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
@@ -16936,9 +18092,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 799; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[3]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[3]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17212,6 +18368,7 @@ static int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_250 = PyInt_FromLong(250); if (unlikely(!__pyx_int_250)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17307,7 +18464,10 @@ PyMODINIT_FUNC PyInit_kernels(void)
   /*--- Function export code ---*/
   /*--- Type init code ---*/
   __pyx_vtabptr_9macrospin_7kernels_Kernel = &__pyx_vtable_9macrospin_7kernels_Kernel;
-  __pyx_vtable_9macrospin_7kernels_Kernel._evolve = (PyObject *(*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float *, long, long))__pyx_f_9macrospin_7kernels_6Kernel__evolve;
+  __pyx_vtable_9macrospin_7kernels_Kernel._evolve = (void (*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float *, long, long))__pyx_f_9macrospin_7kernels_6Kernel__evolve;
+  __pyx_vtable_9macrospin_7kernels_Kernel.field = (float3 (*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3))__pyx_f_9macrospin_7kernels_6Kernel_field;
+  __pyx_vtable_9macrospin_7kernels_Kernel.torque = (float3 (*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3))__pyx_f_9macrospin_7kernels_6Kernel_torque;
+  __pyx_vtable_9macrospin_7kernels_Kernel.energy = (float (*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3))__pyx_f_9macrospin_7kernels_6Kernel_energy;
   if (PyType_Ready(&__pyx_type_9macrospin_7kernels_Kernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_9macrospin_7kernels_Kernel.tp_print = 0;
   if (__Pyx_SetVtable(__pyx_type_9macrospin_7kernels_Kernel.tp_dict, __pyx_vtabptr_9macrospin_7kernels_Kernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17315,12 +18475,13 @@ PyMODINIT_FUNC PyInit_kernels(void)
   __pyx_ptype_9macrospin_7kernels_Kernel = &__pyx_type_9macrospin_7kernels_Kernel;
   __pyx_vtabptr_9macrospin_7kernels_BasicKernel = &__pyx_vtable_9macrospin_7kernels_BasicKernel;
   __pyx_vtable_9macrospin_7kernels_BasicKernel.__pyx_base = *__pyx_vtabptr_9macrospin_7kernels_Kernel;
-  __pyx_vtable_9macrospin_7kernels_BasicKernel.__pyx_base._evolve = (PyObject *(*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float *, long, long))__pyx_f_9macrospin_7kernels_11BasicKernel__evolve;
+  __pyx_vtable_9macrospin_7kernels_BasicKernel.__pyx_base.field = (float3 (*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3))__pyx_f_9macrospin_7kernels_11BasicKernel_field;
+  __pyx_vtable_9macrospin_7kernels_BasicKernel.__pyx_base.torque = (float3 (*)(struct __pyx_obj_9macrospin_7kernels_Kernel *, float, float3))__pyx_f_9macrospin_7kernels_11BasicKernel_torque;
   __pyx_type_9macrospin_7kernels_BasicKernel.tp_base = __pyx_ptype_9macrospin_7kernels_Kernel;
-  if (PyType_Ready(&__pyx_type_9macrospin_7kernels_BasicKernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyType_Ready(&__pyx_type_9macrospin_7kernels_BasicKernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_9macrospin_7kernels_BasicKernel.tp_print = 0;
-  if (__Pyx_SetVtable(__pyx_type_9macrospin_7kernels_BasicKernel.tp_dict, __pyx_vtabptr_9macrospin_7kernels_BasicKernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyObject_SetAttrString(__pyx_m, "BasicKernel", (PyObject *)&__pyx_type_9macrospin_7kernels_BasicKernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_SetVtable(__pyx_type_9macrospin_7kernels_BasicKernel.tp_dict, __pyx_vtabptr_9macrospin_7kernels_BasicKernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetAttrString(__pyx_m, "BasicKernel", (PyObject *)&__pyx_type_9macrospin_7kernels_BasicKernel) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_ptype_9macrospin_7kernels_BasicKernel = &__pyx_type_9macrospin_7kernels_BasicKernel;
   if (PyType_Ready(&__pyx_type___pyx_array) < 0) {__pyx_filename = __pyx_f[3]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type___pyx_array.tp_print = 0;
@@ -17378,90 +18539,90 @@ PyMODINIT_FUNC PyInit_kernels(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "macrospin/kernels.pyx":68
+  /* "macrospin/kernels.pyx":111
  * 
  *     @property
  *     def m(self):             # <<<<<<<<<<<<<<
  *         """ Returns the moment unit vector as a numpy array
  *         """
  */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel, __pyx_n_s_m); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 68; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel, __pyx_n_s_m); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "macrospin/kernels.pyx":67
- *                 self.parameters['time_conversion'])
+  /* "macrospin/kernels.pyx":110
+ * 
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def m(self):
  *         """ Returns the moment unit vector as a numpy array
  */
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel->tp_dict, __pyx_n_s_m, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 68; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel->tp_dict, __pyx_n_s_m, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   PyType_Modified(__pyx_ptype_9macrospin_7kernels_Kernel);
 
-  /* "macrospin/kernels.pyx":75
+  /* "macrospin/kernels.pyx":119
  * 
  *     @property
  *     def t(self):             # <<<<<<<<<<<<<<
  *         """ Returns the simulation time in units of (gamma Ms)
  *         """
  */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel, __pyx_n_s_t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel, __pyx_n_s_t); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "macrospin/kernels.pyx":74
- *         return np.array([m.x, m.y, m.z], dtype=np.float32)
+  /* "macrospin/kernels.pyx":118
+ * 
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t(self):
  *         """ Returns the simulation time in units of (gamma Ms)
  */
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel->tp_dict, __pyx_n_s_t, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel->tp_dict, __pyx_n_s_t, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   PyType_Modified(__pyx_ptype_9macrospin_7kernels_Kernel);
 
-  /* "macrospin/kernels.pyx":81
+  /* "macrospin/kernels.pyx":126
  * 
  *     @property
  *     def t_sec(self):             # <<<<<<<<<<<<<<
  *         """ Returns the simulation time in seconds
  *         """
  */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel, __pyx_n_s_t_sec); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel, __pyx_n_s_t_sec); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "macrospin/kernels.pyx":80
- *         return self.kernel.current.t
+  /* "macrospin/kernels.pyx":125
+ * 
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_sec(self):
  *         """ Returns the simulation time in seconds
  */
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel->tp_dict, __pyx_n_s_t_sec, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_9macrospin_7kernels_Kernel->tp_dict, __pyx_n_s_t_sec, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   PyType_Modified(__pyx_ptype_9macrospin_7kernels_Kernel);
 
@@ -17866,6 +19027,126 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
     return __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL);
 }
 #endif
+
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+    if (s1 == s2) {
+        return (equals == Py_EQ);
+    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
+        const char *ps1, *ps2;
+        Py_ssize_t length = PyBytes_GET_SIZE(s1);
+        if (length != PyBytes_GET_SIZE(s2))
+            return (equals == Py_NE);
+        ps1 = PyBytes_AS_STRING(s1);
+        ps2 = PyBytes_AS_STRING(s2);
+        if (ps1[0] != ps2[0]) {
+            return (equals == Py_NE);
+        } else if (length == 1) {
+            return (equals == Py_EQ);
+        } else {
+            int result = memcmp(ps1, ps2, (size_t)length);
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
+        return (equals == Py_NE);
+    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
+        return (equals == Py_NE);
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+#endif
+}
+
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+#if PY_MAJOR_VERSION < 3
+    PyObject* owned_ref = NULL;
+#endif
+    int s1_is_unicode, s2_is_unicode;
+    if (s1 == s2) {
+        goto return_eq;
+    }
+    s1_is_unicode = PyUnicode_CheckExact(s1);
+    s2_is_unicode = PyUnicode_CheckExact(s2);
+#if PY_MAJOR_VERSION < 3
+    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
+        owned_ref = PyUnicode_FromObject(s2);
+        if (unlikely(!owned_ref))
+            return -1;
+        s2 = owned_ref;
+        s2_is_unicode = 1;
+    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
+        owned_ref = PyUnicode_FromObject(s1);
+        if (unlikely(!owned_ref))
+            return -1;
+        s1 = owned_ref;
+        s1_is_unicode = 1;
+    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
+        return __Pyx_PyBytes_Equals(s1, s2, equals);
+    }
+#endif
+    if (s1_is_unicode & s2_is_unicode) {
+        Py_ssize_t length;
+        int kind;
+        void *data1, *data2;
+        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
+            return -1;
+        length = __Pyx_PyUnicode_GET_LENGTH(s1);
+        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
+            goto return_ne;
+        }
+        kind = __Pyx_PyUnicode_KIND(s1);
+        if (kind != __Pyx_PyUnicode_KIND(s2)) {
+            goto return_ne;
+        }
+        data1 = __Pyx_PyUnicode_DATA(s1);
+        data2 = __Pyx_PyUnicode_DATA(s2);
+        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
+            goto return_ne;
+        } else if (length == 1) {
+            goto return_eq;
+        } else {
+            int result = memcmp(data1, data2, (size_t)(length * kind));
+            #if PY_MAJOR_VERSION < 3
+            Py_XDECREF(owned_ref);
+            #endif
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & s2_is_unicode) {
+        goto return_ne;
+    } else if ((s2 == Py_None) & s1_is_unicode) {
+        goto return_ne;
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+return_eq:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_EQ);
+return_ne:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_NE);
+#endif
+}
 
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
     PyObject *result;
@@ -18573,6 +19854,64 @@ static void __Pyx_RaiseBufferIndexError(int axis) {
      "Out of bounds on buffer access (axis %d)", axis);
 }
 
+static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb) {
+#if CYTHON_COMPILING_IN_CPYTHON
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    PyThreadState *tstate = PyThreadState_GET();
+    tmp_type = tstate->curexc_type;
+    tmp_value = tstate->curexc_value;
+    tmp_tb = tstate->curexc_traceback;
+    tstate->curexc_type = type;
+    tstate->curexc_value = value;
+    tstate->curexc_traceback = tb;
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+#else
+    PyErr_Restore(type, value, tb);
+#endif
+}
+static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb) {
+#if CYTHON_COMPILING_IN_CPYTHON
+    PyThreadState *tstate = PyThreadState_GET();
+    *type = tstate->curexc_type;
+    *value = tstate->curexc_value;
+    *tb = tstate->curexc_traceback;
+    tstate->curexc_type = 0;
+    tstate->curexc_value = 0;
+    tstate->curexc_traceback = 0;
+#else
+    PyErr_Fetch(type, value, tb);
+#endif
+}
+
+static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
+                                  int full_traceback) {
+    PyObject *old_exc, *old_val, *old_tb;
+    PyObject *ctx;
+    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
+    if (full_traceback) {
+        Py_XINCREF(old_exc);
+        Py_XINCREF(old_val);
+        Py_XINCREF(old_tb);
+        __Pyx_ErrRestore(old_exc, old_val, old_tb);
+        PyErr_PrintEx(1);
+    }
+    #if PY_MAJOR_VERSION < 3
+    ctx = PyString_FromString(name);
+    #else
+    ctx = PyUnicode_FromString(name);
+    #endif
+    __Pyx_ErrRestore(old_exc, old_val, old_tb);
+    if (!ctx) {
+        PyErr_WriteUnraisable(Py_None);
+    } else {
+        PyErr_WriteUnraisable(ctx);
+        Py_DECREF(ctx);
+    }
+}
+
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
     PyObject *r;
     if (!j) return NULL;
@@ -18649,64 +19988,6 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
     }
 #endif
     return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
-static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb) {
-#if CYTHON_COMPILING_IN_CPYTHON
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-    PyThreadState *tstate = PyThreadState_GET();
-    tmp_type = tstate->curexc_type;
-    tmp_value = tstate->curexc_value;
-    tmp_tb = tstate->curexc_traceback;
-    tstate->curexc_type = type;
-    tstate->curexc_value = value;
-    tstate->curexc_traceback = tb;
-    Py_XDECREF(tmp_type);
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(tmp_tb);
-#else
-    PyErr_Restore(type, value, tb);
-#endif
-}
-static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb) {
-#if CYTHON_COMPILING_IN_CPYTHON
-    PyThreadState *tstate = PyThreadState_GET();
-    *type = tstate->curexc_type;
-    *value = tstate->curexc_value;
-    *tb = tstate->curexc_traceback;
-    tstate->curexc_type = 0;
-    tstate->curexc_value = 0;
-    tstate->curexc_traceback = 0;
-#else
-    PyErr_Fetch(type, value, tb);
-#endif
-}
-
-static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
-                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
-                                  int full_traceback) {
-    PyObject *old_exc, *old_val, *old_tb;
-    PyObject *ctx;
-    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
-    if (full_traceback) {
-        Py_XINCREF(old_exc);
-        Py_XINCREF(old_val);
-        Py_XINCREF(old_tb);
-        __Pyx_ErrRestore(old_exc, old_val, old_tb);
-        PyErr_PrintEx(1);
-    }
-    #if PY_MAJOR_VERSION < 3
-    ctx = PyString_FromString(name);
-    #else
-    ctx = PyUnicode_FromString(name);
-    #endif
-    __Pyx_ErrRestore(old_exc, old_val, old_tb);
-    if (!ctx) {
-        PyErr_WriteUnraisable(Py_None);
-    } else {
-        PyErr_WriteUnraisable(ctx);
-        Py_DECREF(ctx);
-    }
 }
 
 #if PY_MAJOR_VERSION < 3
@@ -18917,126 +20198,6 @@ static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, in
     }
     __Pyx_RaiseArgumentTypeInvalid(name, obj, type);
     return 0;
-}
-
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-    if (s1 == s2) {
-        return (equals == Py_EQ);
-    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
-        const char *ps1, *ps2;
-        Py_ssize_t length = PyBytes_GET_SIZE(s1);
-        if (length != PyBytes_GET_SIZE(s2))
-            return (equals == Py_NE);
-        ps1 = PyBytes_AS_STRING(s1);
-        ps2 = PyBytes_AS_STRING(s2);
-        if (ps1[0] != ps2[0]) {
-            return (equals == Py_NE);
-        } else if (length == 1) {
-            return (equals == Py_EQ);
-        } else {
-            int result = memcmp(ps1, ps2, (size_t)length);
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
-        return (equals == Py_NE);
-    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
-        return (equals == Py_NE);
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-#endif
-}
-
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-#if PY_MAJOR_VERSION < 3
-    PyObject* owned_ref = NULL;
-#endif
-    int s1_is_unicode, s2_is_unicode;
-    if (s1 == s2) {
-        goto return_eq;
-    }
-    s1_is_unicode = PyUnicode_CheckExact(s1);
-    s2_is_unicode = PyUnicode_CheckExact(s2);
-#if PY_MAJOR_VERSION < 3
-    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
-        owned_ref = PyUnicode_FromObject(s2);
-        if (unlikely(!owned_ref))
-            return -1;
-        s2 = owned_ref;
-        s2_is_unicode = 1;
-    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
-        owned_ref = PyUnicode_FromObject(s1);
-        if (unlikely(!owned_ref))
-            return -1;
-        s1 = owned_ref;
-        s1_is_unicode = 1;
-    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
-        return __Pyx_PyBytes_Equals(s1, s2, equals);
-    }
-#endif
-    if (s1_is_unicode & s2_is_unicode) {
-        Py_ssize_t length;
-        int kind;
-        void *data1, *data2;
-        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
-            return -1;
-        length = __Pyx_PyUnicode_GET_LENGTH(s1);
-        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
-            goto return_ne;
-        }
-        kind = __Pyx_PyUnicode_KIND(s1);
-        if (kind != __Pyx_PyUnicode_KIND(s2)) {
-            goto return_ne;
-        }
-        data1 = __Pyx_PyUnicode_DATA(s1);
-        data2 = __Pyx_PyUnicode_DATA(s2);
-        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
-            goto return_ne;
-        } else if (length == 1) {
-            goto return_eq;
-        } else {
-            int result = memcmp(data1, data2, (size_t)(length * kind));
-            #if PY_MAJOR_VERSION < 3
-            Py_XDECREF(owned_ref);
-            #endif
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & s2_is_unicode) {
-        goto return_ne;
-    } else if ((s2 == Py_None) & s1_is_unicode) {
-        goto return_ne;
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-return_eq:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_EQ);
-return_ne:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_NE);
-#endif
 }
 
 static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {
@@ -19386,30 +20547,7 @@ bad:
     Py_XDECREF(py_frame);
 }
 
-#if PY_MAJOR_VERSION < 3
-static int __Pyx_GetBuffer(PyObject *obj, Py_buffer *view, int flags) {
-    if (PyObject_CheckBuffer(obj)) return PyObject_GetBuffer(obj, view, flags);
-        if (PyObject_TypeCheck(obj, __pyx_ptype_5numpy_ndarray)) return __pyx_pw_5numpy_7ndarray_1__getbuffer__(obj, view, flags);
-        if (PyObject_TypeCheck(obj, __pyx_array_type)) return __pyx_array_getbuffer(obj, view, flags);
-        if (PyObject_TypeCheck(obj, __pyx_memoryview_type)) return __pyx_memoryview_getbuffer(obj, view, flags);
-    PyErr_Format(PyExc_TypeError, "'%.200s' does not have the buffer interface", Py_TYPE(obj)->tp_name);
-    return -1;
-}
-static void __Pyx_ReleaseBuffer(Py_buffer *view) {
-    PyObject *obj = view->obj;
-    if (!obj) return;
-    if (PyObject_CheckBuffer(obj)) {
-        PyBuffer_Release(view);
-        return;
-    }
-        if (PyObject_TypeCheck(obj, __pyx_ptype_5numpy_ndarray)) { __pyx_pw_5numpy_7ndarray_3__releasebuffer__(obj, view); return; }
-    Py_DECREF(obj);
-    view->obj = NULL;
-}
-#endif
-
-
-          static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
+static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
     PyObject *empty_list = 0;
     PyObject *module = 0;
     PyObject *global_dict = 0;
@@ -19482,7 +20620,30 @@ bad:
     return module;
 }
 
-static PyObject *__pyx_memview_get_float(const char *itemp) {
+#if PY_MAJOR_VERSION < 3
+static int __Pyx_GetBuffer(PyObject *obj, Py_buffer *view, int flags) {
+    if (PyObject_CheckBuffer(obj)) return PyObject_GetBuffer(obj, view, flags);
+        if (PyObject_TypeCheck(obj, __pyx_ptype_5numpy_ndarray)) return __pyx_pw_5numpy_7ndarray_1__getbuffer__(obj, view, flags);
+        if (PyObject_TypeCheck(obj, __pyx_array_type)) return __pyx_array_getbuffer(obj, view, flags);
+        if (PyObject_TypeCheck(obj, __pyx_memoryview_type)) return __pyx_memoryview_getbuffer(obj, view, flags);
+    PyErr_Format(PyExc_TypeError, "'%.200s' does not have the buffer interface", Py_TYPE(obj)->tp_name);
+    return -1;
+}
+static void __Pyx_ReleaseBuffer(Py_buffer *view) {
+    PyObject *obj = view->obj;
+    if (!obj) return;
+    if (PyObject_CheckBuffer(obj)) {
+        PyBuffer_Release(view);
+        return;
+    }
+        if (PyObject_TypeCheck(obj, __pyx_ptype_5numpy_ndarray)) { __pyx_pw_5numpy_7ndarray_3__releasebuffer__(obj, view); return; }
+    Py_DECREF(obj);
+    view->obj = NULL;
+}
+#endif
+
+
+          static PyObject *__pyx_memview_get_float(const char *itemp) {
     return (PyObject *) PyFloat_FromDouble(*(float *) itemp);
 }
 static int __pyx_memview_set_float(const char *itemp, PyObject *obj) {

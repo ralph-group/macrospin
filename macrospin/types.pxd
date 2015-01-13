@@ -9,7 +9,7 @@
 # distutils: language = c++
 cimport cython
 
-cdef extern from "cpp/types.h":
+cdef extern from "_types.h":
     cdef cppclass float3:
         float3(x, y, z)
         float3()

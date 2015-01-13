@@ -2,7 +2,7 @@ from macrospin.types cimport *
 from macrospin.kernels cimport Kernel
 
 
-cdef void euler_step(Kernel* kernel):
+cdef inline void euler_step(Kernel kernel):
     """Takes one step using the Euler method """
     kernel.current.t = kernel.previous.t + kernel.dt
 
@@ -12,7 +12,7 @@ cdef void euler_step(Kernel* kernel):
     kernel.current.eps = 0.0 # TODO: Include error
 
 
-cdef void huen_step(Kernel* kernel):
+cdef inline void huen_step(Kernel kernel):
     """ Takes one step using Huen's method """
     kernel.current.t = kernel.previous.t + kernel.dt
 
@@ -25,7 +25,7 @@ cdef void huen_step(Kernel* kernel):
     kernel.current.eps = 0.0 # TODO: Include error
 
 
-cdef void rk23_step(Kernel* kernel):
+cdef inline void rk23_step(Kernel kernel):
     """ Takes one step using the Bogacki-Shampine method (Runga-Kutta RK23) """
     kernel.current.t = kernel.previous.t + kernel.dt
 
@@ -40,7 +40,7 @@ cdef void rk23_step(Kernel* kernel):
     kernel.current.eps = 0.0 # TODO: Include error
 
 
-cdef void rk4_step(Kernel* kernel):
+cdef inline void rk4_step(Kernel kernel):
     """ Takes one step using the Classic 4th order Runga-Kutta method """
     kernel.current.t = kernel.previous.t + kernel.dt
 

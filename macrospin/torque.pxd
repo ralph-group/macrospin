@@ -1,7 +1,7 @@
 from macrospin.types cimport *
 
 
-cdef inline float3 landau_lifshitz(float3 m, float3 heff, float alpha) {
+cdef inline float3 landau_lifshitz(float3 m, float3 heff, float alpha):
     """ Returns the Landau-Lifshitz torque
     
     m - moment unit vector
@@ -13,7 +13,7 @@ cdef inline float3 landau_lifshitz(float3 m, float3 heff, float alpha) {
     return hxm + alpha*m.cross(hxm)
 
 
-cdef inline float3 slonczewski(float3 m, float3 Jc, float stt) {
+cdef inline float3 slonczewski(float3 m, float3 Jc, float stt):
     """ Returns the Slonczewski spin-transfer torque
 
     m - moment unit vector
