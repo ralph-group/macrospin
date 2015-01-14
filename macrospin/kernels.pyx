@@ -14,6 +14,8 @@ cimport numpy as np
 from macrospin.types cimport * # includes float3 and its operators
 from macrospin cimport field, torque, energy, solvers
 
+from libc.math cimport sin, cos
+
 
 cdef class Kernel:
     """ Encapsulates the time evolution algorithm for solving the
@@ -88,7 +90,11 @@ cdef class Kernel:
 
             moments_ptr[3*i] = self.current.m.x;
             moments_ptr[3*i+1] = self.current.m.y;
-            moments_ptr[3*i+2] = self.current.m.z;             
+            moments_ptr[3*i+2] = self.current.m.z;
+
+
+    def relax(self):
+        pass # TODO: Implement relax method
 
 
     def times(self, moments, internal_steps=250):
@@ -112,6 +118,35 @@ cdef class Kernel:
 
     cdef float energy(self, float t, float3 m):
         return energy.zeeman(m, self.field(t, m))
+
+
+    def energy_surface(self, points=100, time=0.0):
+        """ Returns a numpy array of vectors that have a length of the 
+        energy at their orientation
+        """
+        cdef:
+            long n = points
+            float t = time
+            float[::1] theta = np.linspace(0, np.pi, num=n, dtype=np.float32)
+            float[::1] phi = np.linspace(-np.pi, np.pi, num=n, dtype=np.float32)
+            float[:,::1] energies = np.zeros((points**2, 3), dtype=np.float32)
+            float3 m
+            long i, j, idx
+
+        for i in range(n):
+            for j in range(n):
+                m.x = sin(theta[i])*cos(phi[j])
+                m.y = sin(theta[i])*sin(phi[j])
+                m.z = cos(theta[i])
+                g = self.energy(t, m)
+                idx = n*i + j
+                energies[idx][0] = g*m.x
+                energies[idx][1] = g*m.y
+                energies[idx][2] = g*m.z
+
+        return np.asarray(energies)
+
+
 
 
     @property
