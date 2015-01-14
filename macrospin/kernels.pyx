@@ -13,6 +13,7 @@ cimport numpy as np
 
 from macrospin.types cimport * # includes float3 and its operators
 from macrospin cimport field, torque, energy, solvers
+from macrospin.parameters import NormalizedParameters
 
 from libc.math cimport sin, cos
 
@@ -23,7 +24,7 @@ cdef class Kernel:
     """
 
     def __init__(self, object parameters, step_method="RK23"):
-        self.parameters = parameters.normalize()
+        self.parameters = NormalizedParameters(parameters)
         self._load()
 
         self.set_step_func(step_method)
@@ -34,16 +35,11 @@ cdef class Kernel:
     # TODO: def __dealloc__(self):
 
     def set_step_func(self, name):
-        if name == "Euler":
-            self.step_func = &(solvers.euler_step)
-        elif name == "Huen":
-            self.step_func = &(solvers.huen_step)
-        elif name == "RK23":
-            self.step_func = &(solvers.rk23_step)
-        elif name == "RK4":
-            self.step_func = &(solvers.rk4_step)
-        else: # Default to RK23
-            self.step_func = &(solvers.rk23_step)
+        if name == "Euler": self.step_func = &(solvers.euler_step)
+        elif name == "Huen": self.step_func = &(solvers.huen_step)
+        elif name == "RK23": self.step_func = &(solvers.rk23_step)
+        elif name == "RK4": self.step_func = &(solvers.rk4_step)
+        else: self.step_func = &(solvers.rk23_step) # Default to RK23
 
 
     def _load(self):
@@ -64,33 +60,24 @@ cdef class Kernel:
         """ Run the simulation for a given time
         """
         time *= self.parameters['time_conversion']
-        steps = int(time/self.parameters['dt']/internal_steps)
 
-        cdef float[:,::1] moments = np.zeros((steps, 3), dtype=np.float32)
+        cdef:
+            long external_n = long(time/self.parameters['dt']/internal_steps)
+            long internal_n = internal_steps
+            float[:,::1] moments = np.zeros((external_n, 3), dtype=np.float32)
+
         times = self.times(moments, internal_steps)
 
-        self._evolve(&moments[0][0], steps, internal_steps)
-
-        return times, moments
-
-
-    cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps):
-        """ Takes steps
-
-        **moments - pointer to array of array of floats
-        external_steps -
-        internal_steps -
-
-        """
-
-        for i in range(external_steps):
-            for j in range(internal_steps):
+        for i in range(external_n):
+            for j in range(internal_n):
                 self.previous = self.current
                 self.step_func(self)
 
-            moments_ptr[3*i] = self.current.m.x;
-            moments_ptr[3*i+1] = self.current.m.y;
-            moments_ptr[3*i+2] = self.current.m.z;
+            moments[i][0] = self.current.m.x;
+            moments[i][1] = self.current.m.y;
+            moments[i][2] = self.current.m.z;
+
+        return times, np.asarray(moments)
 
 
     def relax(self):
@@ -182,16 +169,61 @@ cdef class BasicKernel(Kernel):
 
 
     def _load(self):
-        """ Loads the parameters from the kernel (overwritting Kernel.load)
+        """ Loads the parameters from the kernel (extending Kernel._load)
         """
-        self.dt = self.parameters['dt']
+        super(BasicKernel, self)._load()
         self.alpha = self.parameters['damping']
-        self.hext = make_float3(self.parameters['Hext'])
+        self.hext = make_float3(self.parameters['hext'])
         self.Nd = make_float3(self.parameters['Nd'])
 
 
     cdef float3 field(self, float t, float3 m):
         return self.hext + field.demagnetization(m, self.Nd)
+
+
+    cdef float3 torque(self, float t, float3 m):
+        cdef float3 heff = self.field(t, m)
+        return torque.landau_lifshitz(m, heff, self.alpha)
+
+
+    property hext:
+        def __get__(self): return make_array(self.hext)
+        def __set__(self, float[::1] l): self.hext = make_float3(l)
+
+
+    property Nd:
+        def __get__(self): return make_array(self.Nd)
+        def __set__(self, float[::1] l): self.Nd = make_float3(l)
+
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# Anisotropy Kernel
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+cdef class AnisotropyKernel(BasicKernel):
+
+
+    def _load(self):
+        """ Loads the parameters from the kernel (extending BasicKernel._load)
+        """
+        super(AnisotropyKernel, self)._load()
+        self.u = make_float3(self.parameters['u'])
+        self.hu1 = self.parameters['hu1']
+        self.hu2 = self.parameters['hu2']
+        self.c1 = make_float3(self.parameters['c1'])
+        self.c2 = make_float3(self.parameters['c2'])
+        self.c3 = self.c1.cross(self.c2)
+        self.hc1 = self.parameters['hc1']
+        self.hc2 = self.parameters['hc2']
+
+
+    cdef float3 field(self, float t, float3 m):
+        cdef float3 heff = self.hext + field.demagnetization(m, self.Nd)
+        heff += field.uniaxial_anisotropy(m, self.u, self.hu1, self.hu2)
+        heff += field.cubic_anisotropy(m, self.c1, self.c2, self.c3, 
+                    self.hc1, self.hc2)
+        return heff
 
 
     cdef float3 torque(self, float t, float3 m):

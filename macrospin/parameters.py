@@ -10,29 +10,50 @@ from macrospin import constants
 import numpy as np
 
 class Parameters(dict):
-
-
-	def verify(self):
-		""" Verifies that the required parameters are present
-		"""
-		raise NotImplementedError("Parameter subclass must define the verify method")
-
-
-	def normalize(self):
-		""" Normalizes the fields and times into those used for simulation,
-		and returns modified Parameter object
-		"""
-		raise NotImplementedError("Parameter subclass must define the normalize method")
+	pass
 
 
 class CgsParameters(Parameters):
+	pass
 
 
-	def normalize_H(self, H):
-		return np.asarray(H, dtype=np.float32)/self['Ms']
+class MksParameters(Parameters):
+	pass
 
-	def normalize(self):
-		if 'gyromagnetic_ratio' not in self:
+
+class NormalizedParameters(Parameters):
+
+
+	def __init__(self, parameters):
+
+		self['damping'] = parameters['damping']
+		self['m0'] = np.asarray(parameters['m0'], dtype=np.float32)
+		self['Ms'] = parameters['Ms']
+		self['dt'] = parameters['dt']
+
+		if 'u' in parameters:
+			self['u'] = np.asarray(parameters['u'], dtype=np.float32)
+		else:
+			self['c2'] = np.zeros((3,), dtype=np.float32)
+		if 'c1' in parameters:
+			self['c1'] = np.asarray(parameters['c1'], dtype=np.float32)
+		else:
+			self['c1'] = np.zeros((3,), dtype=np.float32)
+		if 'c2' in parameters:
+			self['c2'] = np.asarray(parameters['c2'], dtype=np.float32)
+		else:
+			self['c2'] = np.zeros((3,), dtype=np.float32)
+
+		if isinstance(parameters, CgsParameters): 
+			self.normalize_cgs(parameters)
+		elif isinstance(parameters, MksParameters): 
+			self.normalize_mks(parameters)
+
+
+	def normalize_cgs(self, parameters):
+		""" Fills this dictionary with normalized parameters from CGS units
+		"""
+		if 'gyromagnetic_ratio' not in parameters:
 			self['gyromagnetic_ratio'] = constants.gyromagnetic_ratio
 
 		# Rescale gyromagnetic ratio to Landau-Lifshitz version
@@ -42,18 +63,33 @@ class CgsParameters(Parameters):
 		self['time_conversion'] = self['gyromagnetic_ratio']*self['Ms']
 		self['dt'] = self['dt']*self['time_conversion']
 
-		# Rescale fields in terms of Ms
-		for key, value in self.iteritems():
-			if key.startswith("H"): # Assume it is a field
-				self[key] = self.normalize_H(value)
+		if 'Nd' in parameters:
+			self['Nd'] = np.asarray(parameters['Nd'], dtype=np.float32)
+		else:
+			self['Nd'] = np.zeros((3,), dtype=np.float32)
 
-		# Ensure initial moment is a numpy array
-		self['m0'] = np.asarray(self['m0'], dtype=np.float32)
+		if 'Hext' in parameters:
+			self['hext'] = np.asarray(parameters['Hext'], dtype=np.float32)/self['Ms']
 
-		self['Nd'] = np.asarray(self['Nd'], dtype=np.float32)
+		if 'Ku1' in parameters:
+			self['hu1'] = 2.0*parameters['Ku1']/self['Ms']**2.0
+		else:
+			self['hu1'] = 0.0
+		if 'Ku2' in parameters:
+			self['hu2'] = 2.0*parameters['Ku2']/self['Ms']**2.0
+		else:
+			self['hu2'] = 0.0
+		if 'Kc1' in parameters:
+			self['hc1'] = 2.0*parameters['Kc1']/self['Ms']**2.0
+		else:
+			self['hc1'] = 0.0
+		if 'Kc2' in parameters:
+			self['hc2'] = 2.0*parameters['Kc2']/self['Ms']**2.0
+		else:
+			self['hc2'] = 0.0
 
-		return self
 
-
-class MksParameters(Parameters):
-	pass
+	def normalize_mks(self, parameters):
+		""" Fills this dictionary with normalized parameters from MKS units
+		"""
+		pass

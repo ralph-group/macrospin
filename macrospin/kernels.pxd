@@ -16,7 +16,6 @@ cdef class Kernel:
         Step previous, current
         void (*step_func)(Kernel)
         public float dt
-    cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps)
     cdef float3 field(self, float t, float3 m)
     cdef float3 torque(self, float t, float3 m)
     cdef float energy(self, float t, float3 m)
@@ -26,8 +25,15 @@ cdef class BasicKernel(Kernel):
     cdef:
         public float alpha
         float3 hext, Nd
-        
-    cdef void _evolve(self, float* moments_ptr, long external_steps, long internal_steps)
+    cdef float3 field(self, float t, float3 m)
+    cdef float3 torque(self, float t, float3 m)
+    cdef float energy(self, float t, float3 m)
+
+
+cdef class AnisotropyKernel(BasicKernel):
+    cdef:
+        public float hu1, hu2, hc1, hc2
+        float3 u, c1, c2, c3
     cdef float3 field(self, float t, float3 m)
     cdef float3 torque(self, float t, float3 m)
     cdef float energy(self, float t, float3 m)
