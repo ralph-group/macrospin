@@ -15,6 +15,7 @@ macrospin/kernels.cpp
 macrospin/kernels.pxd
 macrospin/kernels.pyx
 macrospin/parameters.py
+macrospin/plot.py
 macrospin/simulations.py
 macrospin/solvers.pxd
 macrospin/torque.pxd
