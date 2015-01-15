@@ -92,7 +92,7 @@ class FieldSweep(object):
         return FieldSweep(kernel, fields)
 
 
-    def run(self, threshold=1e-3):
+    def run(self, steps=1000):
         """ Runs through each field and stabilizes the moment, returning
         the fields, stabilization time, and moment orientation
         """
@@ -104,8 +104,10 @@ class FieldSweep(object):
 
         for i, field in enumerate(self.fields):
             ti = self.kernel.t_sec
-            self.kernel.parameters['Hext'] = self.kernel.parameters.normalize_H(field)
-            self.kernel.stabilize(threshold)
+            self.kernel.hext = self.kernel.raw_parameters.normalize_field(field)
+            print self.kernel.hext, steps
+            self.kernel.relax(steps)
+            print "t:", ti, self.kernel.t_sec
             times[i] = self.kernel.t_sec - ti
             moments[i] = self.kernel.m
 
