@@ -14,7 +14,22 @@ class Parameters(dict):
 
 
 class CgsParameters(Parameters):
-	pass
+	
+
+	def normalize_field(self, field_name):
+		if isinstance(field_name, str):
+			value = self[field_name]
+		else:
+			value = field_name
+		return np.asarray(value, dtype=np.float32)/self['Ms']
+
+
+	def normalize_energy(self, energy_name):
+		if isinstance(energy_name, str):
+			value = self[energy_name]
+		else:
+			value = energy_name
+		return 2.0*self[energy_name]/self['Ms']**2.0
 
 
 class MksParameters(Parameters):
@@ -44,15 +59,6 @@ class NormalizedParameters(Parameters):
 		else:
 			self['c2'] = np.zeros((3,), dtype=np.float32)
 
-		if isinstance(parameters, CgsParameters): 
-			self.normalize_cgs(parameters)
-		elif isinstance(parameters, MksParameters): 
-			self.normalize_mks(parameters)
-
-
-	def normalize_cgs(self, parameters):
-		""" Fills this dictionary with normalized parameters from CGS units
-		"""
 		if 'gyromagnetic_ratio' not in parameters:
 			self['gyromagnetic_ratio'] = constants.gyromagnetic_ratio
 
@@ -68,28 +74,16 @@ class NormalizedParameters(Parameters):
 		else:
 			self['Nd'] = np.zeros((3,), dtype=np.float32)
 
-		if 'Hext' in parameters:
-			self['hext'] = np.asarray(parameters['Hext'], dtype=np.float32)/self['Ms']
+		if 'Hext' in parameters: self['hext'] = parameters.normalize_field('Hext')
 
-		if 'Ku1' in parameters:
-			self['hu1'] = 2.0*parameters['Ku1']/self['Ms']**2.0
-		else:
-			self['hu1'] = 0.0
-		if 'Ku2' in parameters:
-			self['hu2'] = 2.0*parameters['Ku2']/self['Ms']**2.0
-		else:
-			self['hu2'] = 0.0
-		if 'Kc1' in parameters:
-			self['hc1'] = 2.0*parameters['Kc1']/self['Ms']**2.0
-		else:
-			self['hc1'] = 0.0
-		if 'Kc2' in parameters:
-			self['hc2'] = 2.0*parameters['Kc2']/self['Ms']**2.0
-		else:
-			self['hc2'] = 0.0
+		if 'Ku1' in parameters: self['hu1'] = parameters.normalize_energy('Ku1')
+		else: self['hu1'] = 0.0
 
+		if 'Ku2' in parameters:	self['hu2'] = parameters.normalize_energy('Ku2')
+		else: self['hu2'] = 0.0
 
-	def normalize_mks(self, parameters):
-		""" Fills this dictionary with normalized parameters from MKS units
-		"""
-		pass
+		if 'Kc1' in parameters:	self['hc1'] = parameters.normalize_energy('Kc1')
+		else: self['hc1'] = 0.0
+
+		if 'Kc2' in parameters: self['hc2'] = parameters.normalize_energy('Kc2')
+		else: self['hc2'] = 0.0

@@ -24,6 +24,7 @@ cdef class Kernel:
     """
 
     def __init__(self, object parameters, step_method="RK23"):
+        self.raw_parameters = parameters
         self.parameters = NormalizedParameters(parameters)
         self._load()
 
@@ -52,6 +53,7 @@ cdef class Kernel:
         """ Resets the kernel to the initial conditions
         """
         self.current.m = make_float3(self.parameters['m0'])
+        self.current.m.normalize()
         self.current.t = 0.0
         self.current.torque = self.torque(self.current.t, self.current.m)
 
@@ -80,8 +82,36 @@ cdef class Kernel:
         return times, np.asarray(moments)
 
 
-    def relax(self):
-        pass # TODO: Implement relax method
+    def relax(self, steps=1000):
+        """ Run the simulation until no torque is present above a threshold
+        """
+        cdef:
+            float g0 = 0.0
+            float g1 = 0.0
+            long i
+            long n = steps
+
+        for i in range(n):
+            self.previous = self.current
+            self.step_func(self)
+
+        g0 = self.energy(self.current.t, self.current.m)
+
+        for i in range(n):
+            self.previous = self.current
+            self.step_func(self)
+
+        g1 = self.energy(self.current.t, self.current.m)
+
+        # Minimize the energy
+        while g0 > g1:
+            g0 = g1
+            for i in range(n):
+                self.previous = self.current
+                self.step_func(self)
+            g1 = self.energy(self.current.t, self.current.m)
+
+
 
 
     def times(self, moments, internal_steps=250):

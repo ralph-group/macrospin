@@ -13,6 +13,7 @@ cdef struct Step:
 cdef class Kernel:
     cdef:
         public object parameters
+        public object raw_parameters
         Step previous, current
         void (*step_func)(Kernel)
         public float dt
